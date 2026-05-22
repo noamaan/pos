@@ -844,7 +844,7 @@ tr:hover{background:#fafafa;}
 // ================================================================
 // CONFIG — Replace with your deployed Apps Script Web App URL
 // ================================================================
-const API_URL = 'https://script.google.com/macros/s/AKfycbzgS8j8TVKr6-8wwqsFkP87r4ckgtqFxqZPy6pC7nHm-Ua1dMwt2PrK38ILR6coOLr_mQ/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbwD1HQurZ3uOnO8RjNX40otrvWpaIoIyqWaz71JGPG0igGT2FIjaYMaScapkWneNQl0mw/exec';
 
 // ================================================================
 // STATE
@@ -863,10 +863,16 @@ let tablesCache = [];
 // ================================================================
 async function api(action, params = {}) {
   try {
+    const payload = JSON.stringify({
+      action, params,
+      username: currentUser ? currentUser.username : 'system',
+      role: currentUser ? currentUser.role : 'Staff'
+    });
+    // Apps Script: use text/plain to avoid CORS preflight (no OPTIONS request)
     const resp = await fetch(API_URL, {
-      method: 'POST', mode: 'cors',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action, params, username: currentUser?.username || 'system', role: currentUser?.role || 'Staff' })
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: payload
     });
     if (!resp.ok) return { success: false, message: 'HTTP ' + resp.status };
     return await resp.json();
@@ -2104,5 +2110,5 @@ window.onload = function() {
   });
 };
 </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9ffb66c7588fc161',t:'MTc3OTQ0ODUxMA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9ffb7a1bbdbc85dc',t:'MTc3OTQ0OTMwMg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
