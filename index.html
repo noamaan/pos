@@ -113,10 +113,16 @@ tr:hover{background:#fafafa;}
 .billing-layout{display:grid;grid-template-columns:1fr 360px;gap:12px;}
 @media(max-width:900px){.billing-layout{grid-template-columns:1fr;}}
 .menu-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:6px;}
-.menu-item-card{padding:8px;border:2px solid #eee;border-radius:6px;cursor:pointer;text-align:center;transition:all 0.2s;background:#fff;}
-.menu-item-card:hover{border-color:var(--primary);transform:translateY(-2px);box-shadow:0 4px 12px rgba(192,57,43,0.15);}
-.menu-item-card .name{font-size:11px;font-weight:600;color:var(--dark);}
-.menu-item-card .price .full{color:var(--primary);font-weight:600;font-size:11px;}
+.menu-item-card{padding:8px;border:2px solid #eee;border-radius:6px;text-align:center;transition:all 0.2s;background:#fff;}
+.menu-item-card:hover{border-color:var(--primary);box-shadow:0 4px 12px rgba(192,57,43,0.15);}
+.menu-item-card .name{font-size:11px;font-weight:600;color:var(--dark);margin-bottom:5px;}
+.menu-item-card .fh-btns{display:flex;gap:4px;margin-top:5px;}
+.menu-item-card .fh-btn{flex:1;padding:4px 2px;border:none;border-radius:5px;font-size:10px;font-weight:700;cursor:pointer;transition:all 0.15s;}
+.menu-item-card .fh-btn:active{transform:scale(0.94);}
+.menu-item-card .fh-btn.f-btn{background:var(--primary);color:#fff;}
+.menu-item-card .fh-btn.f-btn:hover{background:var(--primary-dark);}
+.menu-item-card .fh-btn.h-btn{background:#fff3cd;color:#856404;border:1px solid #f39c12;}
+.menu-item-card .fh-btn.h-btn:hover{background:#f39c12;color:#fff;}
 .cart-sidebar{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;display:flex;flex-direction:column;max-height:calc(100vh - 140px);position:sticky;top:98px;}
 .cart-items{flex:1;overflow-y:auto;min-height:120px;}
 .cart-item{display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f0f0f0;gap:6px;}
@@ -1531,18 +1537,30 @@ function renderMenu() {
   let items    = menuCache;
   if (filter !== 'All') items = items.filter(i => i.category === filter);
   if (search)           items = items.filter(i => (i.itemName||'').toLowerCase().includes(search));
-  grid.innerHTML = items.map(item => `
-    <div class="menu-item-card" onclick="addToCart('${escJs(item.itemName)}',${Number(item.fullPrice)||0},${Number(item.halfPrice)||0},'${escJs(item.category)}')">
+  grid.innerHTML = items.map(item => {
+    const fp = Number(item.fullPrice)||0;
+    const hp = Number(item.halfPrice)||0;
+    const hasHalf = hp > 0;
+    return `<div class="menu-item-card">
       <div class="name">${escHtml(item.itemName)}</div>
-      <div class="price"><span class="full">₹${item.fullPrice}</span>${item.halfPrice>0?` <span style="color:gray;font-size:10px;">/ ₹${item.halfPrice}</span>`:''}</div>
-      <div style="font-size:9px;color:gray;margin-top:2px;">${item.category}</div>
-    </div>`).join('') || '<p style="color:gray;text-align:center;padding:20px;">No items found</p>';
+      <div style="font-size:9px;color:gray;margin-bottom:3px;">${item.category}</div>
+      <div class="fh-btns">
+        <button class="fh-btn f-btn" onclick="addToCart('${escJs(item.itemName)}',${fp},${hp},'${escJs(item.category)}','FULL')">
+          F ₹${fp}
+        </button>
+        ${hasHalf ? `<button class="fh-btn h-btn" onclick="addToCart('${escJs(item.itemName)}',${fp},${hp},'${escJs(item.category)}','HALF')">
+          H ₹${hp}
+        </button>` : ''}
+      </div>
+    </div>`;
+  }).join('') || '<p style="color:gray;text-align:center;padding:20px;">No items found</p>';
 }
 
-function addToCart(name, fullPrice, halfPrice, category) {
-  modifierPendingItem = { name, fullPrice, halfPrice, category };
-  document.getElementById('modifierTitle').textContent = '➕ ' + name + ' — ₹' + fullPrice;
-  // Uncheck all modifiers
+function addToCart(name, fullPrice, halfPrice, category, size) {
+  size = size || 'FULL';
+  const price = size === 'HALF' ? (halfPrice||0) : (fullPrice||0);
+  modifierPendingItem = { name, fullPrice, halfPrice, category, size, price };
+  document.getElementById('modifierTitle').textContent = (size==='HALF'?'½ Half':'🍽️ Full') + ' — ' + name + ' ₹' + price;
   document.querySelectorAll('#modifierOptions input').forEach(c => c.checked = false);
   document.getElementById('modifierModal').classList.add('active');
 }
@@ -1552,9 +1570,16 @@ function confirmModifier() {
   const item = modifierPendingItem; if (!item) return;
   const checked   = document.querySelectorAll('#modifierOptions input[name="modifier"]:checked');
   const modifiers = Array.from(checked).map(cb => cb.value);
-  const existing  = cart.find(c => c.name === item.name);
-  if (existing) { existing.qty++; existing.modifiers = [...new Set([...existing.modifiers,...modifiers])]; }
-  else cart.push({ name: item.name, fullPrice: item.fullPrice, halfPrice: item.halfPrice, size:'FULL', qty:1, category: item.category, modifiers });
+  const size  = item.size || 'FULL';
+  const price = item.price || (size === 'HALF' ? item.halfPrice : item.fullPrice);
+  // Find existing with same name AND same size
+  const existing = cart.find(c => c.name === item.name && c.size === size);
+  if (existing) {
+    existing.qty++;
+    existing.modifiers = [...new Set([...existing.modifiers,...modifiers])];
+  } else {
+    cart.push({ name: item.name, fullPrice: item.fullPrice, halfPrice: item.halfPrice, price, size, qty:1, category: item.category, modifiers });
+  }
   modifierPendingItem = null;
   renderCart();
 }
@@ -1563,6 +1588,12 @@ function closeModifierModal() { document.getElementById('modifierModal').classLi
 function changeQty(itemName, delta) {
   const idx = cart.findIndex(c => c.name === itemName);
   if (idx === -1) return;
+  cart[idx].qty += delta;
+  if (cart[idx].qty <= 0) cart.splice(idx,1);
+  renderCart();
+}
+function changeQtyIdx(idx, delta) {
+  if (idx < 0 || idx >= cart.length) return;
   cart[idx].qty += delta;
   if (cart[idx].qty <= 0) cart.splice(idx,1);
   renderCart();
@@ -1577,17 +1608,21 @@ function renderCart() {
     updateTotals(); return;
   }
   count.textContent = cart.reduce((a,c) => a+c.qty, 0) + ' items';
-  container.innerHTML = cart.map(item => {
-    const itemTotal = item.fullPrice * item.qty;
+  container.innerHTML = cart.map((item,idx) => {
+    const price     = item.price || (item.size==='HALF' ? item.halfPrice : item.fullPrice);
+    const itemTotal = price * item.qty;
+    const sizeBadge = item.size==='HALF'
+      ? `<span style="background:#fff3cd;color:#856404;font-size:9px;padding:1px 5px;border-radius:4px;font-weight:700;margin-left:4px;">½ HALF</span>`
+      : `<span style="background:#fde8e8;color:#c0392b;font-size:9px;padding:1px 5px;border-radius:4px;font-weight:700;margin-left:4px;">FULL</span>`;
     return `<div class="cart-item">
       <div class="info">
-        <div class="name">${escHtml(item.name)}${item.modifiers&&item.modifiers.length?`<div style="font-size:10px;color:gray;">${item.modifiers.join(', ')}</div>`:''}</div>
-        <div style="font-size:11px;color:var(--primary);">₹${item.fullPrice} each</div>
+        <div class="name">${escHtml(item.name)}${sizeBadge}${item.modifiers&&item.modifiers.length?`<div style="font-size:10px;color:gray;">${item.modifiers.join(', ')}</div>`:''}</div>
+        <div style="font-size:11px;color:var(--primary);">₹${price} each</div>
       </div>
       <div class="qty-control">
-        <button onclick="changeQty('${escJs(item.name)}',-1)">−</button>
+        <button onclick="changeQtyIdx(${idx},-1)">−</button>
         <span>${item.qty}</span>
-        <button onclick="changeQty('${escJs(item.name)}',1)">+</button>
+        <button onclick="changeQtyIdx(${idx},1)">+</button>
       </div>
       <div class="item-total">₹${itemTotal}</div>
     </div>`;
@@ -1595,7 +1630,7 @@ function renderCart() {
   updateTotals();
 }
 
-function calcSubtotal() { return cart.reduce((a,i) => a + i.fullPrice * i.qty, 0); }
+function calcSubtotal() { return cart.reduce((a,i) => a + (i.price || (i.size==='HALF' ? i.halfPrice : i.fullPrice)) * i.qty, 0); }
 
 function updateTotals() {
   const sub  = calcSubtotal();
@@ -1663,7 +1698,13 @@ async function printKOT() {
   for (const [station,items] of Object.entries(groups)) {
     await api('PRINT_KOT', { orderId, items, station, tableNo: selectedTable||'' });
   }
-  cart.forEach(item => api('LOG_DISH_SALE', { date: new Date().toISOString().split('T')[0], dishName: item.name, fullQty: item.qty, totalAmount: item.fullPrice*item.qty, category: item.category }));
+  cart.forEach(item => {
+    const price = item.price || (item.size==='HALF' ? item.halfPrice : item.fullPrice);
+    api('LOG_DISH_SALE', { date: new Date().toISOString().split('T')[0], dishName: item.name,
+      fullQty: item.size==='HALF' ? 0 : item.qty,
+      halfQty: item.size==='HALF' ? item.qty : 0,
+      totalAmount: price * item.qty, category: item.category });
+  });
   clearCart(); loadKDS(); loadOrders(); loadSmartStock();
   toast('✅ KOT sent! Order: ' + orderId);
 }
@@ -2108,5 +2149,5 @@ window.onload = function() {
   });
 };
 </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9ffb83d74a01f487',t:'MTc3OTQ0OTcwMQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</body>
 </html>
