@@ -176,6 +176,12 @@ tr:hover{background:#fafafa;}
 .chat-bubble-ai span{background:#e8f4f8;padding:7px 12px;border-radius:16px 16px 16px 4px;display:inline-block;font-size:13px;max-width:85%;border-left:3px solid var(--blue);}
 .chat-typing{color:var(--gray);font-size:12px;padding:4px 8px;font-style:italic;}
 
+/* ===== MODIFIER CHIPS ===== */
+.mod-chip{display:flex;align-items:center;gap:6px;padding:7px 8px;border:1.5px solid #e0e0e0;border-radius:8px;cursor:pointer;font-size:12px;font-weight:500;color:#333;transition:all 0.15s;background:#fff;user-select:none;}
+.mod-chip:hover{border-color:var(--primary);background:#fef2f2;color:var(--primary);}
+.mod-chip input[type=checkbox]{accent-color:var(--primary);width:14px;height:14px;flex-shrink:0;}
+.mod-chip:has(input:checked){border-color:var(--primary);background:#fef2f2;color:var(--primary);font-weight:700;}
+
 /* ===== REPORTS ===== */
 .report-action-card{background:linear-gradient(135deg,var(--card),#f8f9fa);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);border:1px solid #eee;text-align:center;transition:transform 0.2s;}
 .report-action-card:hover{transform:translateY(-3px);}
@@ -627,7 +633,9 @@ tr:hover{background:#fafafa;}
               </select>
             </div>
           </div>
-          <div id="orderInfoBar" style="display:none;margin-bottom:8px;background:#e8f5e9;padding:6px 10px;border-radius:6px;font-size:12px;color:var(--green);font-weight:600;"></div>
+          <div id="orderInfoBar" style="display:none;margin-bottom:8px;background:#e8f5e9;padding:8px 12px;border-radius:6px;font-size:13px;color:var(--green);font-weight:600;"></div>
+          <!-- Active table tabs -->
+          <div id="activeTableTabs" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;"></div>
           <div class="menu-grid" id="menuGrid"></div>
         </div>
         <div class="card"><h3>📋 Recent Orders</h3>
@@ -676,11 +684,18 @@ tr:hover{background:#fafafa;}
           </div>
         </div>
         <div class="form-group">
-          <label>Customer</label>
-          <div class="flex gap-6">
-            <input type="text" id="customerName" placeholder="Name" style="flex:1;padding:7px;border:2px solid #ddd;border-radius:6px;font-size:12px;">
-            <input type="tel" id="customerPhone" placeholder="Phone" style="flex:1;padding:7px;border:2px solid #ddd;border-radius:6px;font-size:12px;">
+          <label>Customer <span style="font-size:10px;color:var(--gray);">(type phone/name to auto-fill)</span></label>
+          <div class="flex gap-6" style="margin-bottom:4px;">
+            <div style="position:relative;flex:1;">
+              <input type="tel" id="customerPhone" placeholder="📱 Phone number" style="width:100%;padding:7px;border:2px solid #ddd;border-radius:6px;font-size:12px;" oninput="autoFillCustomer(this.value,'phone')" autocomplete="off">
+              <div id="phoneDropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #ddd;border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,0.1);z-index:999;max-height:200px;overflow-y:auto;"></div>
+            </div>
+            <div style="position:relative;flex:1;">
+              <input type="text" id="customerName" placeholder="👤 Name" style="width:100%;padding:7px;border:2px solid #ddd;border-radius:6px;font-size:12px;" oninput="autoFillCustomer(this.value,'name')" autocomplete="off">
+              <div id="nameDropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #ddd;border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,0.1);z-index:999;max-height:200px;overflow-y:auto;"></div>
+            </div>
           </div>
+          <div id="customerInfoBadge" style="display:none;background:#e8f5e9;border-radius:6px;padding:5px 10px;font-size:11px;color:#155724;"></div>
         </div>
         <div class="form-group" id="deliveryAddressGroup" style="display:none;">
           <label>Delivery Address</label>
@@ -781,6 +796,48 @@ tr:hover{background:#fafafa;}
 
   <!-- REPORTS & NOTIFICATIONS -->
   <div class="tab-content" id="tab-reports">
+    <!-- RESTAURANT INFO CARD -->
+    <div class="card">
+      <h3>🏪 Restaurant Info <span style="font-size:11px;color:var(--gray);font-weight:400;">— Printed on every bill</span></h3>
+      <div class="form-row-3">
+        <div class="form-group">
+          <label>Restaurant Name</label>
+          <input type="text" id="restName" placeholder="Indus Wok" value="Indus Wok">
+        </div>
+        <div class="form-group">
+          <label>Tagline</label>
+          <input type="text" id="restTagline" placeholder="Pan-Asian Restaurant" value="Pan-Asian Restaurant">
+        </div>
+        <div class="form-group">
+          <label>Phone Number</label>
+          <input type="tel" id="restPhone" placeholder="8850241377" value="8850241377">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Address Line 1</label>
+          <input type="text" id="restAddr1" placeholder="Sheetal Plaza, Shop No. 5/6" value="Sheetal Plaza, Shop No. 5/6">
+        </div>
+        <div class="form-group">
+          <label>Address Line 2</label>
+          <input type="text" id="restAddr2" placeholder="Opp. Shivar Garden, Mira Road" value="Opp. Shivar Garden, Mira Road">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>GSTIN (optional)</label>
+          <input type="text" id="restGST" placeholder="27AAAAA0000A1Z5">
+        </div>
+        <div class="form-group">
+          <label>Thank You Message</label>
+          <input type="text" id="restThanks" placeholder="Thank you! Visit Again 🐉" value="Thank you! Visit Again 🐉">
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="saveRestaurantInfo()">💾 Save Restaurant Info</button>
+      <div id="restInfoStatus" style="margin-top:8px;"></div>
+    </div>
+
+    <!-- EMAIL SETTINGS CARD -->
     <div class="card">
       <h3>📧 Email Notification Settings</h3>
       <div class="form-row">
@@ -832,6 +889,58 @@ tr:hover{background:#fafafa;}
     </div>
   </div>
 
+  <!-- CUSTOMERS -->
+  <div class="tab-content" id="tab-customers">
+    <div class="card">
+      <h3>👤 Customer Database <span style="font-size:11px;color:var(--gray);font-weight:400;">— Auto-saved from Takeaway & Delivery orders</span></h3>
+      <div class="flex gap-8 items-center mb-8" style="flex-wrap:wrap;">
+        <input type="text" id="customerSearchBox" placeholder="🔍 Search by name or phone..." oninput="searchCustomers()" style="flex:1;min-width:200px;padding:9px;border:2px solid #ddd;border-radius:6px;font-size:13px;">
+        <select id="customerPlatformFilter" onchange="filterCustomers()" style="padding:9px;border:2px solid #ddd;border-radius:6px;font-size:13px;">
+          <option value="All">All Platforms</option>
+          <option>Takeaway</option>
+          <option>Delivery</option>
+          <option>Zomato</option>
+          <option>Swiggy</option>
+          <option>Dine-in</option>
+        </select>
+        <button class="btn btn-primary" onclick="showAddCustomerModal()">➕ Add Customer</button>
+      </div>
+      <div id="customerStats" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;"></div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Name</th><th>Phone</th><th>Address</th><th>Platform</th><th>Orders</th><th>Total Spend</th><th>Last Order</th><th>Action</th></tr>
+          </thead>
+          <tbody id="customersTable"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Customer Modal -->
+  <div class="modal-overlay" id="addCustomerModal">
+    <div class="modal" style="max-width:460px;">
+      <button class="close-btn" onclick="closeModal('addCustomerModal')">×</button>
+      <h3>➕ Add / Edit Customer</h3>
+      <div class="form-row">
+        <div class="form-group"><label>Name *</label><input type="text" id="custModalName" placeholder="Customer name"></div>
+        <div class="form-group"><label>Phone *</label><input type="tel" id="custModalPhone" placeholder="10-digit mobile"></div>
+      </div>
+      <div class="form-group"><label>Address</label><input type="text" id="custModalAddress" placeholder="Full delivery address"></div>
+      <div class="form-row">
+        <div class="form-group"><label>Area / Locality</label><input type="text" id="custModalArea" placeholder="e.g. Mira Road East"></div>
+        <div class="form-group"><label>Platform</label>
+          <select id="custModalPlatform">
+            <option>Takeaway</option><option>Delivery</option><option>Zomato</option><option>Swiggy</option><option>Dine-in</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group"><label>Email</label><input type="email" id="custModalEmail" placeholder="Optional"></div>
+      <div class="form-group"><label>Notes</label><input type="text" id="custModalNotes" placeholder="e.g. VIP, Regular, No Spicy"></div>
+      <button class="btn btn-primary w-full" onclick="saveCustomerModal()">💾 Save Customer</button>
+    </div>
+  </div>
+
 </div><!-- end mainContent -->
 
 <div class="footer-credit">Made and Developed by <strong>Noamaan Shaikh</strong> · The Flavours of Indus Wok · Powered by Gemini 2.0 Flash</div>
@@ -840,7 +949,89 @@ tr:hover{background:#fafafa;}
 <div class="modal-overlay" id="tableModal"><div class="modal"><button class="close-btn" onclick="closeTableModal()">×</button><h3 id="tableModalTitle">Table Action</h3><div id="tableModalBody"></div></div></div>
 <div class="modal-overlay" id="wastageModal"><div class="modal"><button class="close-btn" onclick="closeModal('wastageModal')">×</button><h3>🗑️ Record Wastage</h3><div class="form-group"><label>Item</label><input type="text" id="wastageItem" placeholder="Item name"></div><div class="form-row-3"><div class="form-group"><label>Qty</label><input type="number" id="wastageQty" placeholder="0" min="0"></div><div class="form-group"><label>Unit</label><select id="wastageUnit"><option>kg</option><option>g</option><option>L</option><option>pcs</option></select></div><div class="form-group"><label>Date</label><input type="date" id="wastageDate"></div></div><div class="form-group"><label>Reason</label><input type="text" id="wastageReason" placeholder="Why wasted?"></div><button class="btn btn-primary" onclick="saveWastage()">💾 Save Wastage</button></div></div>
 <div class="modal-overlay" id="settleModal"><div class="modal"><button class="close-btn" onclick="closeModal('settleModal')">×</button><h3>✅ Settle Bill</h3><p style="margin-bottom:10px;font-size:14px;">Total: <strong id="settleTotal" style="color:var(--primary);">₹0</strong></p><div class="form-row-3"><div class="form-group"><label>Cash (₹)</label><input type="number" id="settleCash" placeholder="0" min="0" oninput="updateSettleSplit()"></div><div class="form-group"><label>UPI (₹)</label><input type="number" id="settleUPI" placeholder="0" min="0" oninput="updateSettleSplit()"></div><div class="form-group"><label>Card (₹)</label><input type="number" id="settleCard" placeholder="0" min="0" oninput="updateSettleSplit()"></div></div><p id="settleRemaining" style="font-size:13px;padding:6px;border-radius:4px;"></p><button class="btn btn-green w-full mt-8" onclick="confirmSettle()">✅ Confirm &amp; Settle</button></div></div>
-<div class="modal-overlay" id="modifierModal"><div class="modal"><button class="close-btn" onclick="closeModifierModal()">×</button><h3 id="modifierTitle">➕ Add to Cart</h3><div id="modifierOptions"><label style="display:block;padding:6px;border:1px solid #eee;border-radius:6px;margin-bottom:4px;cursor:pointer;"><input type="checkbox" name="modifier" value="Extra Spicy"> 🌶️ Extra Spicy</label><label style="display:block;padding:6px;border:1px solid #eee;border-radius:6px;margin-bottom:4px;cursor:pointer;"><input type="checkbox" name="modifier" value="No Onion"> 🧅 No Onion</label><label style="display:block;padding:6px;border:1px solid #eee;border-radius:6px;margin-bottom:4px;cursor:pointer;"><input type="checkbox" name="modifier" value="No Garlic"> 🧄 No Garlic</label><label style="display:block;padding:6px;border:1px solid #eee;border-radius:6px;margin-bottom:4px;cursor:pointer;"><input type="checkbox" name="modifier" value="Extra Cheese (+₹20)"> 🧀 Extra Cheese +₹20</label><label style="display:block;padding:6px;border:1px solid #eee;border-radius:6px;cursor:pointer;"><input type="checkbox" name="modifier" value="Extra Sauce (+₹15)"> 🥫 Extra Sauce +₹15</label></div><button class="btn btn-primary w-full mt-8" onclick="confirmModifier()">✅ Add to Cart</button></div></div>
+<div class="modal-overlay" id="modifierModal">
+  <div class="modal" style="max-width:480px;">
+    <button class="close-btn" onclick="closeModifierModal()">×</button>
+    <h3 id="modifierTitle" style="color:var(--primary);margin-bottom:4px;">➕ Add to Cart</h3>
+    <p style="font-size:11px;color:var(--gray);margin-bottom:12px;">Select variations (optional — can select multiple)</p>
+
+    <div id="modifierOptions" style="max-height:65vh;overflow-y:auto;padding-right:4px;">
+
+      <!-- SPICE LEVEL -->
+      <div style="font-size:11px;font-weight:700;color:#c0392b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;margin-top:2px;">🌶️ Spice Level</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px;">
+        <label class="mod-chip"><input type="checkbox" name="modifier" value="Extra Spicy 🌶️🌶️"> 🌶️🌶️ Extra Spicy</label>
+        <label class="mod-chip"><input type="checkbox" name="modifier" value="Normal Spicy 🌶️"> 🌶️ Normal Spicy</label>
+        <label class="mod-chip"><input type="checkbox" name="modifier" value="Less Spicy 🟡"> 🟡 Less Spicy</label>
+        <label class="mod-chip"><input type="checkbox" name="modifier" value="No Spicy ❌🌶️"> ❌ No Spicy</label>
+      </div>
+
+      <!-- SALT -->
+      <div style="font-size:11px;font-weight:700;color:#2980b9;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">🧂 Salt</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px;">
+        <label class="mod-chip"><input type="checkbox" name="modifier" value="Less Salt"> 🧂 Less Salt</label>
+        <label class="mod-chip"><input type="checkbox" name="modifier" value="No Salt"> ❌ No Salt</label>
+        <label class="mod-chip"><input type="checkbox" name="modifier" value="Extra Salt"> ➕ Extra Salt</label>
+        <label class="mod-chip"><input type="checkbox" name="modifier" value="No Ajinomoto"> 🚫 No Ajinomoto</label>
+      </div>
+
+      <!-- EGG -->
+      <div style="font-size:11px;font-weight:700;color:#f39c12;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">🥚 Egg</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px;">
+        <label class="mod-chip"><input type="checkbox" name="modifier" value="Extra Egg 🥚"> 🥚 Extra Egg</label>
+        <label class="mod-chip"><input type="checkbox" name="modifier" value="Without Egg"> ❌ Without Egg</label>
+        <label class="mod-chip"><input type="checkbox" name="modifier" value="Half Boiled Egg"> 🥚 Half Boiled Egg</label>
+        <label class="mod-chip"><input type="checkbox" name="modifier" value="Full Boiled Egg"> 🥚 Full Boiled Egg</label>
+      </div>
+
+      <!-- PROTEIN -->
+      <div style="font-size:11px;font-weight:700;color:#27ae60;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">🍗 Protein</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px;">
+        <label class="mod-chip"><input type="checkbox" name="modifier" value="Extra Chicken 🍗"> 🍗 Extra Chicken</label>
+        <label class="mod-chip"><input type="checkbox" name="modifier" value="Less Chicken"> 🍗 Less Chicken</label>
+        <label class="mod-chip"><input type="checkbox" name="modifier" value="Extra Prawns 🍤"> 🍤 Extra Prawns</label>
+        <label class="mod-chip"><input type="checkbox" name="modifier" value="No Meat"> 🌿 No Meat</label>
+      </div>
+
+      <!-- ONION GARLIC -->
+      <div style="font-size:11px;font-weight:700;color:#8e44ad;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">🧅 Onion & Garlic</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px;">
+        <label class="mod-chip"><input type="checkbox" name="modifier" value="No Onion 🧅"> 🧅 No Onion</label>
+        <label class="mod-chip"><input type="checkbox" name="modifier" value="No Garlic 🧄"> 🧄 No Garlic</label>
+        <label class="mod-chip"><input type="checkbox" name="modifier" value="No Onion No Garlic"> 🚫 No Onion Garlic</label>
+        <label class="mod-chip"><input type="checkbox" name="modifier" value="Extra Garlic"> ➕ Extra Garlic</label>
+      </div>
+
+      <!-- SAUCE / OIL -->
+      <div style="font-size:11px;font-weight:700;color:#e67e22;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">🥫 Sauce & Oil</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px;">
+        <label class="mod-chip"><input type="checkbox" name="modifier" value="Extra Sauce"> 🥫 Extra Sauce</label>
+        <label class="mod-chip"><input type="checkbox" name="modifier" value="Less Oil"> 💧 Less Oil</label>
+        <label class="mod-chip"><input type="checkbox" name="modifier" value="No Oil"> ❌ No Oil</label>
+        <label class="mod-chip"><input type="checkbox" name="modifier" value="Extra Soy Sauce"> 🫙 Extra Soy</label>
+      </div>
+
+      <!-- EXTRAS -->
+      <div style="font-size:11px;font-weight:700;color:#16a085;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">✨ Extras & Others</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px;">
+        <label class="mod-chip"><input type="checkbox" name="modifier" value="Extra Cheese 🧀"> 🧀 Extra Cheese</label>
+        <label class="mod-chip"><input type="checkbox" name="modifier" value="Extra Butter"> 🧈 Extra Butter</label>
+        <label class="mod-chip"><input type="checkbox" name="modifier" value="Extra Noodles"> 🍜 Extra Noodles</label>
+        <label class="mod-chip"><input type="checkbox" name="modifier" value="Extra Rice 🍚"> 🍚 Extra Rice</label>
+        <label class="mod-chip"><input type="checkbox" name="modifier" value="Extra Gravy"> 🥣 Extra Gravy</label>
+        <label class="mod-chip"><input type="checkbox" name="modifier" value="No MSG"> 🚫 No MSG</label>
+        <label class="mod-chip"><input type="checkbox" name="modifier" value="No Vinegar"> ❌ No Vinegar</label>
+        <label class="mod-chip"><input type="checkbox" name="modifier" value="Well Done"> 🔥 Well Done</label>
+      </div>
+
+    </div><!-- end modifierOptions -->
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;">
+      <button class="btn btn-outline" onclick="closeModifierModal()" style="justify-content:center;">Skip / No Change</button>
+      <button class="btn btn-primary" onclick="confirmModifier()" style="justify-content:center;">✅ Add to Cart</button>
+    </div>
+  </div>
+</div>
 <div class="modal-overlay" id="mergeModal"><div class="modal"><button class="close-btn" onclick="closeModal('mergeModal')">×</button><h3>🔄 Merge Tables</h3><p style="margin-bottom:10px;font-size:13px;">Select two available tables to merge:</p><div class="form-row"><div class="form-group"><label>Table 1</label><select id="mergeTable1"><option>Select...</option></select></div><div class="form-group"><label>Table 2</label><select id="mergeTable2"><option>Select...</option></select></div></div><button class="btn btn-primary w-full" onclick="confirmMerge()">🔄 Merge Tables</button></div></div>
 
 <!-- PRINT AREA -->
@@ -850,19 +1041,99 @@ tr:hover{background:#fafafa;}
 // ================================================================
 // CONFIG — Replace with your deployed Apps Script Web App URL
 // ================================================================
-const API_URL = 'https://script.google.com/macros/s/AKfycbwn-sgKuvFuA971bPPRcaqgFnbDmB3uf1Gv9FZjVkmd4_nAVVT-qrJN8VlUG4TUIoeahw/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbw1bPBHVVjAAHt-h1HvnaKNBaWaTb1tBDvLpZ3iexafpXI2CF5k-zl8F_RxPK-WM5oESg/exec';
+
+// ================================================================
+// RESTAURANT INFO — Loaded from settings, used on every bill/KOT
+// ================================================================
+let REST_INFO = {
+  name:    'Indus Wok',
+  tagline: 'Pan-Asian Restaurant',
+  phone:   '8850241377',
+  addr1:   'Sheetal Plaza, Shop No. 5/6',
+  addr2:   'Opp. Shivar Garden, Mira Road',
+  gst:     '',
+  thanks:  'Thank you! Visit Again 🐉'
+};
 
 // ================================================================
 // STATE
 // ================================================================
 let currentUser = null;
-let cart        = [];
-let discountValue = 0, discountType = 'flat';
-let selectedTable = null;
 let menuCache = [];
 let modifierPendingItem = null;
 let ordersCache = [];
 let tablesCache = [];
+
+// ── Per-table cart memory ──
+// Each table gets its own independent cart saved here
+// Key = tableNo (e.g. 'T1', 'T2') or 'TAKEAWAY' / 'DELIVERY'
+// Value = { cart, discountValue, discountType, customerName, customerPhone, deliveryAddress, orderType, orderId }
+let tableCarts = {};
+let selectedTable = null; // currently active table/session
+
+// Active cart helpers — always read/write through these
+function getActiveCart()     { return selectedTable && tableCarts[selectedTable] ? tableCarts[selectedTable].cart : []; }
+function getActiveDiscount() { return selectedTable && tableCarts[selectedTable] ? tableCarts[selectedTable].discountValue || 0 : 0; }
+function getActiveDiscType() { return selectedTable && tableCarts[selectedTable] ? tableCarts[selectedTable].discountType || 'flat' : 'flat'; }
+
+// Shorthand references updated on every switchTable call
+let cart          = [];
+let discountValue = 0;
+let discountType  = 'flat';
+
+function syncCartFromTable() {
+  if (selectedTable && tableCarts[selectedTable]) {
+    cart          = tableCarts[selectedTable].cart;
+    discountValue = tableCarts[selectedTable].discountValue || 0;
+    discountType  = tableCarts[selectedTable].discountType  || 'flat';
+    // Restore customer info
+    const tc = tableCarts[selectedTable];
+    const cn = document.getElementById('customerName');
+    const cp = document.getElementById('customerPhone');
+    const ot = document.getElementById('orderTypeSelect');
+    if (cn && tc.customerName)   cn.value = tc.customerName;
+    if (cp && tc.customerPhone)  cp.value = tc.customerPhone;
+    if (ot && tc.orderType)      ot.value = tc.orderType;
+    // Restore delivery address
+    const da = document.getElementById('deliveryAddress');
+    if (da && tc.deliveryAddress) da.value = tc.deliveryAddress;
+    // Show/hide delivery address field
+    const addrGrp = document.getElementById('deliveryAddressGroup');
+    if (addrGrp) addrGrp.style.display = (tc.orderType === 'Delivery') ? 'block' : 'none';
+    // Restore discount inputs
+    const di = document.getElementById('discountInput');
+    const dt = document.getElementById('discountType');
+    if (di) di.value = discountValue || '';
+    if (dt) dt.value = discountType;
+    // Reset customer info badge
+    const badge = document.getElementById('customerInfoBadge');
+    if (badge) badge.style.display = 'none';
+  } else {
+    cart = []; discountValue = 0; discountType = 'flat';
+    // Clear customer fields
+    const cn2 = document.getElementById('customerName');
+    const cp2 = document.getElementById('customerPhone');
+    const da2 = document.getElementById('deliveryAddress');
+    const badge2 = document.getElementById('customerInfoBadge');
+    if (cn2)    cn2.value = '';
+    if (cp2)    cp2.value = '';
+    if (da2)    da2.value = '';
+    if (badge2) badge2.style.display = 'none';
+  }
+}
+
+function saveCartToTable() {
+  if (!selectedTable) return;
+  if (!tableCarts[selectedTable]) tableCarts[selectedTable] = { cart:[], discountValue:0, discountType:'flat', customerName:'', customerPhone:'', orderType:'Dine-in', orderId:null };
+  tableCarts[selectedTable].cart          = cart;
+  tableCarts[selectedTable].discountValue = discountValue;
+  tableCarts[selectedTable].discountType  = discountType;
+  tableCarts[selectedTable].customerName    = document.getElementById('customerName')?.value    || '';
+  tableCarts[selectedTable].customerPhone   = document.getElementById('customerPhone')?.value   || '';
+  tableCarts[selectedTable].deliveryAddress = document.getElementById('deliveryAddress')?.value || '';
+  tableCarts[selectedTable].orderType       = document.getElementById('orderTypeSelect')?.value || 'Dine-in';
+}
 
 // ================================================================
 // API HELPER
@@ -948,6 +1219,7 @@ function initApp() {
   loadDishes(); loadMoneyReceived(); loadRecon(); loadUsers(); loadPredictions();
   loadAudit(); loadStaff(); loadAttendance(); loadSalary(); loadTasks();
   loadContentIdeas(); loadMenu(); loadKDS(); loadTables(); loadSmartStock();
+  loadCustomers();
   loadRecipes(); loadDeductionLog(); loadReportsLog(); loadSettings();
   setInterval(loadKDS, 30000);
   setInterval(() => { const e = document.getElementById('kdsTimer'); if(e) e.textContent = new Date().toLocaleTimeString('en-IN'); }, 1000);
@@ -984,7 +1256,8 @@ const ALL_TABS = [
   { id:'ai',        label:'🤖 AI',        roles:['Owner','Manager'] },
   { id:'aichat',    label:'💬 AI Chat',   roles:['Owner','Manager'] },
   { id:'audit',     label:'🔍 Audit',     roles:['Owner','Manager'] },
-  { id:'users',     label:'👥 Users',     roles:['Owner'] }
+  { id:'users',     label:'👥 Users',     roles:['Owner'] },
+  { id:'customers', label:'👤 Customers',  roles:['Owner','Manager'] }
 ];
 
 function setupTabs() {
@@ -1581,6 +1854,7 @@ function confirmModifier() {
     cart.push({ name: item.name, fullPrice: item.fullPrice, halfPrice: item.halfPrice, price, size, qty:1, category: item.category, modifiers });
   }
   modifierPendingItem = null;
+  saveCartToTable();
   renderCart();
 }
 function closeModifierModal() { document.getElementById('modifierModal').classList.remove('active'); modifierPendingItem = null; }
@@ -1590,12 +1864,14 @@ function changeQty(itemName, delta) {
   if (idx === -1) return;
   cart[idx].qty += delta;
   if (cart[idx].qty <= 0) cart.splice(idx,1);
+  saveCartToTable();
   renderCart();
 }
 function changeQtyIdx(idx, delta) {
   if (idx < 0 || idx >= cart.length) return;
   cart[idx].qty += delta;
   if (cart[idx].qty <= 0) cart.splice(idx,1);
+  saveCartToTable();
   renderCart();
 }
 
@@ -1628,6 +1904,25 @@ function renderCart() {
     </div>`;
   }).join('');
   updateTotals();
+  updateActiveTableTabs();
+}
+
+function updateActiveTableTabs() {
+  const bar = document.getElementById('activeTableTabs');
+  if (!bar) return;
+  const active = Object.entries(tableCarts).filter(([t,tc]) => tc.cart && tc.cart.length > 0);
+  if (!active.length) { bar.style.display='none'; return; }
+  bar.style.display = 'flex';
+  bar.innerHTML = '<span style="font-size:11px;color:var(--gray);align-self:center;margin-right:4px;">Active:</span>' +
+    active.map(([t,tc]) => {
+      const cnt   = tc.cart.reduce((a,i) => a+i.qty, 0);
+      const total = tc.cart.reduce((a,i) => a+(i.price||(i.size==="HALF"?i.halfPrice:i.fullPrice))*i.qty, 0);
+      const isActive = t === selectedTable;
+      const hasKot = tc.orderId;
+      return `<button onclick="selectTable('${t}')" style="padding:4px 10px;border-radius:16px;border:2px solid ${isActive?'var(--primary)':'#ddd'};background:${isActive?'var(--primary)':'#fff'};color:${isActive?'#fff':'#333'};font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;">
+        ${t}${hasKot?' ✓':''} (${cnt}) ₹${total}
+      </button>`;
+    }).join('');
 }
 
 function calcSubtotal() { return cart.reduce((a,i) => a + (i.price || (i.size==='HALF' ? i.halfPrice : i.fullPrice)) * i.qty, 0); }
@@ -1649,6 +1944,7 @@ function updateTotals() {
 function applyDiscount() {
   discountValue = Number(document.getElementById('discountInput').value)||0;
   discountType  = document.getElementById('discountType').value;
+  saveCartToTable();
   renderCart();
 }
 
@@ -1657,17 +1953,24 @@ function quickDiscount(val, isFlat) {
   discountType  = isFlat ? 'flat' : 'percent';
   document.getElementById('discountInput').value = val;
   document.getElementById('discountType').value  = discountType;
+  saveCartToTable();
   renderCart();
 }
 
 function clearCart() {
+  if (selectedTable && cart.length > 0) {
+    if (!confirm('Clear all items for Table ' + selectedTable + '?')) return;
+  }
   cart = []; discountValue = 0; discountType = 'flat';
   document.getElementById('discountInput').value = '';
-  selectedTable = null;
-  document.getElementById('orderInfoBar').style.display = 'none';
   document.getElementById('customerName').value  = '';
   document.getElementById('customerPhone').value = '';
+  if (selectedTable && tableCarts[selectedTable]) {
+    tableCarts[selectedTable] = { cart:[], discountValue:0, discountType:'flat', customerName:'', customerPhone:'', orderType:'Dine-in', orderId:null };
+  }
+  updateTableIndicator();
   renderCart();
+  toast('🗑️ Cart cleared for Table ' + (selectedTable||''));
 }
 
 function onOrderTypeChange() {
@@ -1680,6 +1983,17 @@ function onOrderTypeChange() {
 // ================================================================
 async function printKOT() {
   if (cart.length === 0) return toast('Cart is empty!', 'warning');
+  // For Takeaway/Delivery without a table, use orderType as session key
+  if (!selectedTable) {
+    const ot = document.getElementById('orderTypeSelect')?.value || 'Takeaway';
+    selectedTable = ot.toUpperCase().replace(/\s/g,'_') + '_' + Date.now().toString().slice(-4);
+    if (!tableCarts[selectedTable]) tableCarts[selectedTable] = { cart, discountValue, discountType,
+      customerName: document.getElementById('customerName')?.value||'',
+      customerPhone: document.getElementById('customerPhone')?.value||'',
+      deliveryAddress: document.getElementById('deliveryAddress')?.value||'',
+      orderType: ot, orderId: null };
+    updateTableIndicator();
+  }
   const sub = calcSubtotal();
   const orderData = {
     tableNo: selectedTable||'', items: cart, total: sub + sub*0.05,
@@ -1705,8 +2019,46 @@ async function printKOT() {
       halfQty: item.size==='HALF' ? item.qty : 0,
       totalAmount: price * item.qty, category: item.category });
   });
-  clearCart(); loadKDS(); loadOrders(); loadSmartStock();
-  toast('✅ KOT sent! Order: ' + orderId);
+  // ✅ Cart stays — save orderId so we can settle later
+  if (selectedTable && tableCarts[selectedTable]) {
+    tableCarts[selectedTable].orderId = orderId;
+  }
+  saveCartToTable();
+  updateTableIndicator();
+  loadKDS(); loadOrders(); loadSmartStock();
+  // Print KOT slip
+  const now2 = new Date();
+  const W = 32;
+  const center2 = (t) => { t=String(t); const pad=Math.max(0,Math.floor((W-t.length)/2)); return ' '.repeat(pad)+t; };
+  const line2   = (l,r) => { l=String(l); r=String(r); const sp=Math.max(1,W-l.length-r.length); return l+' '.repeat(sp)+r; };
+  let kot = '';
+  kot += center2('** KITCHEN ORDER TICKET **') + '\n';
+  kot += center2(REST_INFO.name) + '\n';
+  kot += center2(now2.toLocaleDateString('en-IN') + ' ' + now2.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})) + '\n';
+  kot += '--------------------------------\n';
+  kot += line2('KOT:', orderId.slice(-8)) + '\n';
+  if(selectedTable) kot += line2('Table:', selectedTable) + '\n';
+  kot += line2('Type:', document.getElementById('orderTypeSelect').value) + '\n';
+  if(document.getElementById('customerName').value) kot += line2('Customer:', document.getElementById('customerName').value.substring(0,16)) + '\n';
+  kot += '--------------------------------\n';
+  kot += line2('ITEM (SIZE)','QTY') + '\n';
+  kot += '--------------------------------\n';
+  cart.forEach(item => {
+    const name = item.name.substring(0,20);
+    const sizeTag = item.size==='HALF'?'(H)':'(F)';
+    kot += line2(name+' '+sizeTag, 'x'+item.qty) + '\n';
+    // Show modifiers on KOT — CRITICAL for kitchen
+    if (item.modifiers && item.modifiers.length) {
+      item.modifiers.forEach(m => {
+        kot += '  !! ' + m + ' !!\n';
+      });
+    }
+  });
+  kot += '--------------------------------\n';
+  kot += center2('** CHECK VARIATIONS ABOVE **') + '\n';
+  kot += '\n\n\n';
+  showPrintChooser(kot, 'KOT');
+  toast('✅ KOT sent! Cart kept — print bill when ready 🧾');
 }
 
 // ================================================================
@@ -1714,6 +2066,7 @@ async function printKOT() {
 // ================================================================
 async function printBill() {
   if (cart.length === 0) return toast('Cart is empty!', 'warning');
+  saveCartToTable(); // ensure latest customer info saved before printing
   const sub   = calcSubtotal(), cgst = sub*0.025, sgst = sub*0.025;
   let disc    = discountType==='percent' ? sub*(discountValue/100) : (discountValue||0);
   disc        = Math.min(disc, sub);
@@ -1721,27 +2074,193 @@ async function printBill() {
   const now   = new Date();
   const cust  = document.getElementById('customerName').value || 'Walk-in';
   const type  = document.getElementById('orderTypeSelect').value;
-  const itemsHtml = cart.map(i => `<div class="item-row"><span>${escHtml(i.name)} × ${i.qty}</span><span>₹${(i.fullPrice*i.qty).toFixed(2)}</span></div>`).join('');
+  const dateStr = now.toLocaleDateString('en-IN') + ' ' + now.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+
+  // ── Build 58mm ESC/POS style plain-text receipt (32 chars wide) ──
+  const W = 32; // chars per line for 58mm
+  const center = (t) => { t=String(t); const pad=Math.max(0,Math.floor((W-t.length)/2)); return ' '.repeat(pad)+t; };
+  const line   = (l,r) => { l=String(l); r=String(r); const sp=Math.max(1,W-l.length-r.length); return l+' '.repeat(sp)+r; };
+  const divider = '--------------------------------';
+
+  let receipt = '';
+  // ── Header with restaurant info ──
+  receipt += center(REST_INFO.name) + '\n';
+  if (REST_INFO.tagline) receipt += center(REST_INFO.tagline) + '\n';
+  if (REST_INFO.addr1)   receipt += center(REST_INFO.addr1) + '\n';
+  if (REST_INFO.addr2)   receipt += center(REST_INFO.addr2) + '\n';
+  if (REST_INFO.phone)   receipt += center('Ph: ' + REST_INFO.phone) + '\n';
+  if (REST_INFO.gst)     receipt += center('GSTIN: ' + REST_INFO.gst) + '\n';
+  receipt += divider + '\n';
+  receipt += center('TAX INVOICE') + '\n';
+  receipt += center(dateStr) + '\n';
+  receipt += divider + '\n';
+  if (cust && cust !== 'Walk-in') receipt += line('Customer:', cust) + '\n';
+  if (selectedTable) receipt += line('Table:', selectedTable) + '\n';
+  receipt += line('Type:', type) + '\n';
+  receipt += divider + '\n';
+  receipt += line('ITEM (SIZE x QTY)','AMT') + '\n';
+  receipt += divider + '\n';
+
+  cart.forEach(item => {
+    const price   = item.price || (item.size==='HALF' ? item.halfPrice : item.fullPrice);
+    const name    = item.name.substring(0, 18);
+    const sizeTag = item.size==='HALF' ? '(H)' : '(F)';
+    const amt     = '₹'+(price*item.qty).toFixed(0);
+    receipt += line(name+' '+sizeTag+' x'+item.qty, amt) + '\n';
+    // Print modifiers on bill too
+    if (item.modifiers && item.modifiers.length) {
+      item.modifiers.forEach(m => {
+        receipt += '  >> ' + m + '\n';
+      });
+    }
+  });
+
+  receipt += divider + '\n';
+  receipt += line('Subtotal', '₹'+sub.toFixed(0)) + '\n';
+  receipt += line('CGST (2.5%)', '₹'+cgst.toFixed(0)) + '\n';
+  receipt += line('SGST (2.5%)', '₹'+sgst.toFixed(0)) + '\n';
+  if(disc>0) receipt += line('Discount', '-₹'+disc.toFixed(0)) + '\n';
+  receipt += divider + '\n';
+  receipt += line('** TOTAL **', '₹'+Math.max(0,total).toFixed(0)) + '\n';
+  receipt += divider + '\n';
+  receipt += center(REST_INFO.thanks) + '\n';
+  if (REST_INFO.phone) receipt += center(REST_INFO.phone) + '\n';
+  receipt += '\n\n\n'; // feed paper
+
+  // ── Show print preview modal + offer methods ──
   const pa = document.getElementById('printArea'); pa.style.display = 'block';
   pa.innerHTML = `
     <div class="header">
-      <h2>🐉 The Flavours of Indus Wok</h2>
-      <p>Pan-Asian Restaurant</p>
-      <p style="font-weight:700;font-size:14px;">TAX INVOICE</p>
-      <p>${now.toLocaleDateString('en-IN')} ${now.toLocaleTimeString('en-IN')}</p>
-      <p>Customer: ${cust} | ${type}${selectedTable?' | Table: '+selectedTable:''}</p>
+      <h2>${REST_INFO.name}</h2>
+      <p>${REST_INFO.tagline}</p>
+      ${REST_INFO.addr1?`<p>${REST_INFO.addr1}</p>`:''}
+      ${REST_INFO.addr2?`<p>${REST_INFO.addr2}</p>`:''}
+      ${REST_INFO.phone?`<p>📞 ${REST_INFO.phone}</p>`:''}
+      ${REST_INFO.gst?`<p style="font-size:10px;">GSTIN: ${REST_INFO.gst}</p>`:''}
+      <p style="font-weight:700;font-size:14px;margin-top:4px;">TAX INVOICE</p>
+      <p>${dateStr}</p>
+      <p>Customer: ${cust}${selectedTable?' | Table: '+selectedTable:''} | ${type}</p>
     </div>
     <div class="divider"></div>
-    ${itemsHtml}
+    ${cart.map(i=>{
+      const p=i.price||(i.size==='HALF'?i.halfPrice:i.fullPrice);
+      const mods = i.modifiers&&i.modifiers.length ? `<div style="font-size:9px;color:#856404;padding-left:8px;">> ${i.modifiers.join(', ')}</div>` : '';
+      return`<div class="item-row"><span>${escHtml(i.name)} (${i.size==='HALF'?'Half':'Full'}) ×${i.qty}${mods}</span><span>₹${(p*i.qty).toFixed(0)}</span></div>`;
+    }).join('')}
     <div class="divider"></div>
-    <div class="item-row"><span>Subtotal</span><span>₹${sub.toFixed(2)}</span></div>
-    <div class="item-row"><span>CGST (2.5%)</span><span>₹${cgst.toFixed(2)}</span></div>
-    <div class="item-row"><span>SGST (2.5%)</span><span>₹${sgst.toFixed(2)}</span></div>
-    ${disc>0?`<div class="item-row"><span>Discount</span><span>-₹${disc.toFixed(2)}</span></div>`:''}
-    <div class="total-row"><span>TOTAL</span><span>₹${Math.max(0,total).toFixed(2)}</span></div>
+    <div class="item-row"><span>Subtotal</span><span>₹${sub.toFixed(0)}</span></div>
+    <div class="item-row"><span>CGST (2.5%)</span><span>₹${cgst.toFixed(0)}</span></div>
+    <div class="item-row"><span>SGST (2.5%)</span><span>₹${sgst.toFixed(0)}</span></div>
+    ${disc>0?`<div class="item-row"><span>Discount</span><span>-₹${disc.toFixed(0)}</span></div>`:''}
+    <div class="total-row"><span>TOTAL</span><span>₹${Math.max(0,total).toFixed(0)}</span></div>
     <div class="divider"></div>
-    <div class="footer">Thank you for dining with us! 🐉<br>Visit us again soon!<br><span style="font-size:9px;">Developed by Noamaan Shaikh</span></div>`;
-  window.print(); pa.style.display = 'none';
+    <div class="footer">${REST_INFO.thanks}<br>${REST_INFO.phone?`📞 ${REST_INFO.phone}`:''}</div>`;
+
+  // ── Show print method chooser ──
+  showPrintChooser(receipt, 'BILL');
+}
+
+function showPrintChooser(receiptText, type) {
+  const existing = document.getElementById('printChooserModal');
+  if(existing) existing.remove();
+  document.getElementById('printArea').style.display = 'none';
+
+  const modal = document.createElement('div');
+  modal.id = 'printChooserModal';
+  modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.65);z-index:9999;display:flex;align-items:flex-end;justify-content:center;';
+
+  const label = type === 'KOT' ? '🍳 Print KOT' : '🧾 Print Bill';
+
+  modal.innerHTML = `
+    <div style="background:#fff;border-radius:20px 20px 0 0;padding:22px;width:100%;max-width:480px;box-shadow:0 -4px 24px rgba(0,0,0,0.25);">
+      <div style="text-align:center;margin-bottom:18px;">
+        <div style="font-size:22px;font-weight:700;color:#2c3e50;">${label}</div>
+        <div style="font-size:12px;color:#888;margin-top:3px;">Select how to print on EZO-58BT</div>
+      </div>
+
+      <button onclick="printViaRawBT('${encodeURIComponent(receiptText)}')"
+        style="width:100%;padding:16px;border:2px solid #c0392b;border-radius:12px;background:#c0392b;color:#fff;cursor:pointer;font-size:15px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;justify-content:center;gap:8px;">
+        🖨️ Print via RawBT (Recommended)
+        <span style="font-size:10px;font-weight:400;opacity:0.85;">Sends full receipt directly to EZO</span>
+      </button>
+
+      <button onclick="printViaShare('${encodeURIComponent(receiptText)}')"
+        style="width:100%;padding:14px;border:2px solid #2980b9;border-radius:12px;background:#2980b9;color:#fff;cursor:pointer;font-size:14px;font-weight:600;margin-bottom:10px;">
+        📤 Share Text → Print App
+      </button>
+
+      <button onclick="copyAndShowInstructions('${encodeURIComponent(receiptText)}')"
+        style="width:100%;padding:14px;border:2px solid #27ae60;border-radius:12px;background:#27ae60;color:#fff;cursor:pointer;font-size:14px;font-weight:600;margin-bottom:14px;">
+        📋 Copy Receipt Text
+      </button>
+
+      <button onclick="document.getElementById('printChooserModal').remove();"
+        style="width:100%;padding:12px;border:1px solid #ddd;border-radius:10px;background:#f8f9fa;cursor:pointer;font-size:13px;color:#666;">
+        ✕ Cancel
+      </button>
+      <div style="text-align:center;margin-top:10px;font-size:11px;color:#aaa;">
+        RawBT → open app → tap menu → Printer → set EZO-58BT
+      </div>
+    </div>`;
+
+  document.body.appendChild(modal);
+  modal.addEventListener('click', e => { if(e.target===modal) modal.remove(); });
+}
+
+// ── RawBT direct intent — sends plain text receipt directly ──
+function printViaRawBT(encoded) {
+  document.getElementById('printChooserModal')?.remove();
+  const text = decodeURIComponent(encoded);
+
+  // Method 1: RawBT Android intent (works when RawBT is installed)
+  try {
+    const textEncoded = encodeURIComponent(text);
+    const intent = 'intent:' + textEncoded +
+      '#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;end;';
+    window.location.href = intent;
+    return;
+  } catch(e) {}
+
+  // Method 2: rawbt:// scheme
+  try {
+    const textEncoded = encodeURIComponent(text);
+    window.location.href = 'rawbt://' + textEncoded;
+    return;
+  } catch(e) {}
+
+  toast('RawBT not responding — try Share Text instead', 'warning');
+}
+
+async function copyAndShowInstructions(encoded) {
+  try {
+    const text = decodeURIComponent(encoded);
+    await navigator.clipboard.writeText(text);
+    document.getElementById('printChooserModal')?.remove();
+    toast('✅ Receipt copied! Open RawBT → paste to print, OR share to any print app.');
+  } catch(e) {
+    document.getElementById('printChooserModal')?.remove();
+    toast('⚠️ Use Share Text option instead', 'warning');
+  }
+}
+
+function printViaShare(encoded) {
+  document.getElementById('printChooserModal')?.remove();
+  const text = decodeURIComponent(encoded);
+  if (navigator.share) {
+    navigator.share({ title: 'Indus Wok Receipt', text: text })
+      .catch(() => toast('Share cancelled', 'warning'));
+  } else {
+    // Fallback: open in new tab as plain text
+    const blob = new Blob([text], {type:'text/plain'});
+    const url  = URL.createObjectURL(blob);
+    window.open(url, '_blank');
+    toast('📋 Receipt opened — use Share/Print from there');
+  }
+}
+
+function printViaAndroid() {
+  document.getElementById('printChooserModal')?.remove();
+  window.print();
 }
 
 // ================================================================
@@ -1793,8 +2312,20 @@ async function confirmSettle() {
   const r = await api('PLACE_ORDER', orderData);
   if (!r.success) return toast('❌ ' + r.message, 'error');
   if (selectedTable) await api('UPDATE_TABLE', { tableNo: selectedTable, status:'Available' });
-  clearCart(); closeModal('settleModal'); loadOrders(); loadTables(); loadDashboard();
-  toast('✅ Bill settled! Order: ' + r.orderId);
+  // Clear only this table's cart after settling
+  if (selectedTable && tableCarts[selectedTable]) {
+    delete tableCarts[selectedTable];
+  }
+  cart = []; discountValue = 0; discountType = 'flat';
+  document.getElementById('discountInput').value = '';
+  document.getElementById('customerName').value  = '';
+  document.getElementById('customerPhone').value = '';
+  const justSettled = selectedTable;
+  selectedTable = null;
+  document.getElementById('orderInfoBar').style.display = 'none';
+  renderCart();
+  closeModal('settleModal'); loadOrders(); loadTables(); loadDashboard();
+  toast('✅ Bill settled! Table ' + justSettled + ' is now free. Order: ' + r.orderId);
 }
 
 // ================================================================
@@ -1845,7 +2376,20 @@ function renderKDS(kots) {
   grid.innerHTML = active.map(k => {
     let items = [];
     try { items = typeof k.items==='string' ? JSON.parse(k.items) : (k.items||[]); } catch(e) { items=[]; }
-    const ih = items.map(i => `<div class="item-line" style="display:flex;justify-content:space-between;padding:2px 0;font-size:12px;"><span>${i.qty||1}× ${escHtml(i.name||i.itemName)}</span></div>`).join('');
+    const ih = items.map(i => {
+      const name = escHtml(i.name||i.itemName||'');
+      const qty  = i.qty||1;
+      const size = i.size==='HALF' ? '<span style="background:#fff3cd;color:#856404;font-size:9px;padding:1px 5px;border-radius:3px;font-weight:700;margin-left:3px;">HALF</span>' : '<span style="background:#fde8e8;color:#c0392b;font-size:9px;padding:1px 5px;border-radius:3px;font-weight:700;margin-left:3px;">FULL</span>';
+      const mods = (i.modifiers && i.modifiers.length)
+        ? i.modifiers.map(m => `<span style="display:inline-block;background:#fff3cd;color:#856404;border:1px solid #f39c12;font-size:10px;font-weight:700;padding:1px 7px;border-radius:12px;margin:2px 2px 0 0;">${escHtml(m)}</span>`).join('')
+        : '';
+      return `<div style="padding:4px 0;border-bottom:1px solid rgba(0,0,0,0.05);">
+        <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:600;">
+          <span>${qty}× ${name}${size}</span>
+        </div>
+        ${mods ? `<div style="margin-top:3px;">${mods}</div>` : ''}
+      </div>`;
+    }).join('');
     let td='', tc='';
     if (k.timestamp) { const m = Math.floor((now - new Date(k.timestamp))/60000); td = m+'m ago'; if(m>20) tc='warning'; }
     const sc = k.status==='New'?'status-new':k.status==='PREPARING'?'status-preparing':k.status==='READY'?'status-ready':'status-served';
@@ -1921,14 +2465,54 @@ function openTableModal(tableNo, status, customer, orderId) {
 }
 function closeTableModal() { document.getElementById('tableModal').classList.remove('active'); }
 function selectTable(tableNo) {
-  selectedTable = tableNo; closeTableModal(); switchTab('billing');
-  document.getElementById('orderInfoBar').textContent = '🍽️ Selected: Table ' + tableNo;
-  document.getElementById('orderInfoBar').style.display = 'block';
+  // Save current cart before switching
+  if (selectedTable) saveCartToTable();
+  // Switch to new table
+  selectedTable = tableNo;
+  if (!tableCarts[tableNo]) {
+    tableCarts[tableNo] = { cart:[], discountValue:0, discountType:'flat', customerName:'', customerPhone:'', orderType:'Dine-in', orderId:null };
+  }
+  syncCartFromTable();
+  closeTableModal();
+  switchTab('billing');
+  updateTableIndicator();
+  renderCart();
+  toast('🍽️ Table ' + tableNo + ' — ' + (cart.length > 0 ? cart.length + ' items in cart' : 'Empty cart'));
 }
+
+function updateTableIndicator() {
+  const bar = document.getElementById('orderInfoBar');
+  if (!selectedTable) { bar.style.display = 'none'; return; }
+  const tc   = tableCarts[selectedTable];
+  const cnt  = tc ? tc.cart.reduce((a,i) => a+i.qty, 0) : 0;
+  const hasKot = tc && tc.orderId;
+  bar.style.display = 'block';
+  bar.style.background = cnt > 0 ? '#e8f5e9' : '#f8f9fa';
+  bar.innerHTML = `🍽️ <strong>Table ${selectedTable}</strong>${cnt>0?' — '+cnt+' items':'  — Empty'}${hasKot?' <span style="background:#27ae60;color:#fff;font-size:10px;padding:1px 6px;border-radius:8px;margin-left:6px;">KOT Sent ✓</span>':''}
+  <span style="float:right;font-size:11px;color:#888;cursor:pointer;" onclick="showAllTables()">📋 All Tables</span>`;
+}
+
+function showAllTables() {
+  // Show mini summary of all active table carts
+  const entries = Object.entries(tableCarts).filter(([t,tc]) => tc.cart && tc.cart.length > 0);
+  if (!entries.length) { toast('No active carts on any table', 'warning'); return; }
+  let msg = '📋 Active Carts:\n';
+  entries.forEach(([t,tc]) => {
+    const items = tc.cart.reduce((a,i) => a+i.qty, 0);
+    const total = tc.cart.reduce((a,i) => a+(i.price||(i.size==="HALF"?i.halfPrice:i.fullPrice))*i.qty, 0);
+    msg += `  ${t}: ${items} items — ₹${total}\n`;
+  });
+  alert(msg);
+}
+
 function startOrder(tableNo) {
-  selectTable(tableNo);
   const cn = document.getElementById('modalCustomer');
-  document.getElementById('customerName').value = cn ? cn.value : 'Walk-in';
+  const customerName = cn ? cn.value : '';
+  selectTable(tableNo);
+  if (customerName) {
+    document.getElementById('customerName').value = customerName;
+    if (tableCarts[tableNo]) tableCarts[tableNo].customerName = customerName;
+  }
 }
 async function freeTable(t) { await api('UPDATE_TABLE',{tableNo:t,status:'Available'}); closeTableModal(); loadTables(); toast('✅ Table '+t+' freed'); }
 async function reserveTable(t) { const c=document.getElementById('modalCustomer')?.value||'Guest'; await api('UPDATE_TABLE',{tableNo:t,status:'Reserved',customerName:c}); closeTableModal(); loadTables(); toast('✅ Table '+t+' reserved'); }
@@ -2049,11 +2633,211 @@ async function logDelivery() {
 // ================================================================
 // REPORTS & EMAIL NOTIFICATIONS
 // ================================================================
+// ================================================================
+// CUSTOMERS — Database & Auto-fill
+// ================================================================
+let customersCache = []; // loaded once, searched locally for speed
+
+async function loadCustomers() {
+  const res = await api('GET_CUSTOMERS'); if (!res.success) return;
+  customersCache = res.customers || [];
+  renderCustomersTable(customersCache);
+  renderCustomerStats(customersCache);
+}
+
+function renderCustomerStats(customers) {
+  const el = document.getElementById('customerStats'); if (!el) return;
+  const total      = customers.length;
+  const totalSpend = customers.reduce((a,c) => a + Number(c.totalSpend||0), 0);
+  const repeat     = customers.filter(c => Number(c.totalOrders||0) > 1).length;
+  const zomato     = customers.filter(c => c.platform === 'Zomato').length;
+  el.innerHTML = `
+    <div class="stat-card" style="flex:1;min-width:120px;"><div class="icon">👤</div><div class="value">${total}</div><div class="label">Total Customers</div></div>
+    <div class="stat-card green" style="flex:1;min-width:120px;"><div class="icon">🔁</div><div class="value">${repeat}</div><div class="label">Repeat Customers</div></div>
+    <div class="stat-card gold" style="flex:1;min-width:120px;"><div class="icon">₹</div><div class="value">₹${fmtNum(totalSpend)}</div><div class="label">Total Revenue</div></div>
+    <div class="stat-card blue" style="flex:1;min-width:120px;"><div class="icon">🍅</div><div class="value">${zomato}</div><div class="label">Zomato Orders</div></div>`;
+}
+
+function renderCustomersTable(customers) {
+  const tbody = document.getElementById('customersTable'); if (!tbody) return;
+  if (!customers.length) { tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:gray;padding:20px;">No customers yet — they'll auto-save from Takeaway & Delivery orders!</td></tr>'; return; }
+  tbody.innerHTML = customers.map(c => `
+    <tr>
+      <td><strong>${escHtml(c.name||'-')}</strong>${c.notes?`<div style="font-size:10px;color:var(--gold);">⭐ ${escHtml(c.notes)}</div>`:''}</td>
+      <td><a href="tel:${c.phone}" style="color:var(--primary);text-decoration:none;">📱 ${c.phone}</a></td>
+      <td style="font-size:11px;max-width:180px;">${escHtml(c.address||'-')}${c.area?`<div style="color:var(--gray);">${escHtml(c.area)}</div>`:''}</td>
+      <td><span class="status-badge ${c.platform==='Zomato'?'status-critical':c.platform==='Swiggy'?'status-low':c.platform==='Takeaway'?'status-active':'status-ok'}">${c.platform||'-'}</span></td>
+      <td style="text-align:center;">${c.totalOrders||0}</td>
+      <td>₹${fmtNum(c.totalSpend||0)}</td>
+      <td style="font-size:11px;">${c.lastOrderDate||'-'}</td>
+      <td>
+        <button class="btn btn-sm btn-primary" onclick="fillCustomerToBilling('${escJs(c.name)}','${escJs(c.phone)}','${escJs(c.address||'')}')">🧾 Bill</button>
+        <button class="btn btn-sm btn-outline" onclick="editCustomer('${escJs(c.phone)}')" style="margin-left:3px;">✏️</button>
+      </td>
+    </tr>`).join('');
+}
+
+function searchCustomers() {
+  const q = (document.getElementById('customerSearchBox')?.value||'').toLowerCase();
+  const platform = document.getElementById('customerPlatformFilter')?.value || 'All';
+  let filtered = customersCache;
+  if (q) filtered = filtered.filter(c => (c.name||'').toLowerCase().includes(q) || (c.phone||'').includes(q) || (c.address||'').toLowerCase().includes(q));
+  if (platform !== 'All') filtered = filtered.filter(c => c.platform === platform);
+  renderCustomersTable(filtered);
+}
+function filterCustomers() { searchCustomers(); }
+
+// ── Auto-fill from customer database while typing in billing ──
+let autoFillTimer = null;
+function autoFillCustomer(val, field) {
+  clearTimeout(autoFillTimer);
+  if (!val || val.length < 2) {
+    document.getElementById(field==='phone'?'phoneDropdown':'nameDropdown').style.display='none';
+    document.getElementById('customerInfoBadge').style.display='none';
+    return;
+  }
+  autoFillTimer = setTimeout(() => {
+    const q       = val.toLowerCase().replace(/\s/g,'');
+    const matches = customersCache.filter(c => {
+      if (field === 'phone') return (c.phone||'').replace(/\s/g,'').includes(q);
+      return (c.name||'').toLowerCase().includes(q);
+    }).slice(0,6);
+
+    const dropId  = field==='phone' ? 'phoneDropdown' : 'nameDropdown';
+    const drop    = document.getElementById(dropId);
+    if (!matches.length) { drop.style.display='none'; return; }
+
+    drop.style.display = 'block';
+    drop.innerHTML = matches.map(c => `
+      <div onclick="fillCustomer('${escJs(c.name)}','${escJs(c.phone)}','${escJs(c.address||'')}')"
+        style="padding:10px 12px;cursor:pointer;border-bottom:1px solid #f0f0f0;font-size:12px;"
+        onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='#fff'">
+        <div style="font-weight:600;">👤 ${escHtml(c.name)} <span style="color:var(--gray);font-weight:400;">· ${c.phone}</span></div>
+        <div style="color:var(--gray);font-size:11px;margin-top:2px;">📍 ${escHtml(c.address||'No address saved')} ${c.area?'('+escHtml(c.area)+')':''}</div>
+        <div style="font-size:10px;color:var(--primary);margin-top:1px;">${c.platform||''} · ${c.totalOrders||0} orders · ₹${fmtNum(c.totalSpend||0)} spent</div>
+      </div>`).join('');
+
+    // Close dropdown on outside click
+    setTimeout(() => {
+      document.addEventListener('click', function handler(e) {
+        if (!drop.contains(e.target)) { drop.style.display='none'; document.removeEventListener('click',handler); }
+      });
+    }, 100);
+  }, 300);
+}
+
+function fillCustomer(name, phone, address) {
+  document.getElementById('customerName').value    = name;
+  document.getElementById('customerPhone').value   = phone;
+  if (address) document.getElementById('deliveryAddress').value = address;
+  document.getElementById('phoneDropdown').style.display = 'none';
+  document.getElementById('nameDropdown').style.display  = 'none';
+  // Show info badge
+  const cust = customersCache.find(c => c.phone===phone);
+  if (cust) {
+    const badge = document.getElementById('customerInfoBadge');
+    badge.style.display = 'block';
+    badge.innerHTML = `✅ <strong>${escHtml(name)}</strong> — ${cust.totalOrders||0} previous orders · ₹${fmtNum(cust.totalSpend||0)} spent${cust.notes?` · ⭐ ${escHtml(cust.notes)}`:''}`;
+    if (address) {
+      const addrGroup = document.getElementById('deliveryAddressGroup');
+      if (addrGroup) addrGroup.style.display = 'block';
+    }
+  }
+  saveCartToTable();
+}
+
+function fillCustomerToBilling(name, phone, address) {
+  switchTab('billing');
+  // Set takeaway mode if no table selected
+  const ot = document.getElementById('orderTypeSelect');
+  if (ot && (!selectedTable || selectedTable==='')) ot.value = 'Takeaway';
+  onOrderTypeChange();
+  setTimeout(() => fillCustomer(name, phone, address), 200);
+}
+
+function showAddCustomerModal() {
+  document.getElementById('custModalName').value    = '';
+  document.getElementById('custModalPhone').value   = '';
+  document.getElementById('custModalAddress').value = '';
+  document.getElementById('custModalArea').value    = '';
+  document.getElementById('custModalEmail').value   = '';
+  document.getElementById('custModalNotes').value   = '';
+  document.getElementById('addCustomerModal').classList.add('active');
+}
+
+function editCustomer(phone) {
+  const c = customersCache.find(c => c.phone===phone);
+  if (!c) return;
+  document.getElementById('custModalName').value    = c.name    || '';
+  document.getElementById('custModalPhone').value   = c.phone   || '';
+  document.getElementById('custModalAddress').value = c.address || '';
+  document.getElementById('custModalArea').value    = c.area    || '';
+  document.getElementById('custModalEmail').value   = c.email   || '';
+  document.getElementById('custModalNotes').value   = c.notes   || '';
+  document.getElementById('custModalPlatform').value= c.platform|| 'Takeaway';
+  document.getElementById('addCustomerModal').classList.add('active');
+}
+
+async function saveCustomerModal() {
+  const name  = document.getElementById('custModalName').value.trim();
+  const phone = document.getElementById('custModalPhone').value.trim();
+  if (!name || !phone) return toast('Name and Phone are required', 'warning');
+  const res = await api('SAVE_CUSTOMER', {
+    name, phone,
+    address:  document.getElementById('custModalAddress').value.trim(),
+    area:     document.getElementById('custModalArea').value.trim(),
+    email:    document.getElementById('custModalEmail').value.trim(),
+    notes:    document.getElementById('custModalNotes').value.trim(),
+    platform: document.getElementById('custModalPlatform').value
+  });
+  if (res.success) {
+    toast('✅ Customer saved!');
+    closeModal('addCustomerModal');
+    loadCustomers();
+  } else toast('❌ ' + res.message, 'error');
+}
+
 async function loadSettings() {
   const res = await api('GET_SETTINGS'); if (!res.success) return;
-  if (res.settings && res.settings.adminEmail) {
-    document.getElementById('adminEmail').value = res.settings.adminEmail;
+  const s = res.settings || {};
+  if (s.adminEmail)  document.getElementById('adminEmail').value  = s.adminEmail;
+  // Load restaurant info
+  if (s.restName)    { document.getElementById('restName').value    = s.restName;    REST_INFO.name    = s.restName; }
+  if (s.restTagline) { document.getElementById('restTagline').value = s.restTagline; REST_INFO.tagline = s.restTagline; }
+  if (s.restPhone)   { document.getElementById('restPhone').value   = s.restPhone;   REST_INFO.phone   = s.restPhone; }
+  if (s.restAddr1)   { document.getElementById('restAddr1').value   = s.restAddr1;   REST_INFO.addr1   = s.restAddr1; }
+  if (s.restAddr2)   { document.getElementById('restAddr2').value   = s.restAddr2;   REST_INFO.addr2   = s.restAddr2; }
+  if (s.restGST)     { document.getElementById('restGST').value     = s.restGST;     REST_INFO.gst     = s.restGST; }
+  if (s.restThanks)  { document.getElementById('restThanks').value  = s.restThanks;  REST_INFO.thanks  = s.restThanks; }
+}
+
+async function saveRestaurantInfo() {
+  const fields = {
+    restName:    document.getElementById('restName').value.trim(),
+    restTagline: document.getElementById('restTagline').value.trim(),
+    restPhone:   document.getElementById('restPhone').value.trim(),
+    restAddr1:   document.getElementById('restAddr1').value.trim(),
+    restAddr2:   document.getElementById('restAddr2').value.trim(),
+    restGST:     document.getElementById('restGST').value.trim(),
+    restThanks:  document.getElementById('restThanks').value.trim()
+  };
+  // Validate name
+  if (!fields.restName) return toast('Enter restaurant name', 'warning');
+  // Save each field
+  for (const [key, value] of Object.entries(fields)) {
+    await api('SAVE_SETTING', { key, value });
   }
+  // Update live REST_INFO
+  REST_INFO.name    = fields.restName    || REST_INFO.name;
+  REST_INFO.tagline = fields.restTagline || REST_INFO.tagline;
+  REST_INFO.phone   = fields.restPhone;
+  REST_INFO.addr1   = fields.restAddr1;
+  REST_INFO.addr2   = fields.restAddr2;
+  REST_INFO.gst     = fields.restGST;
+  REST_INFO.thanks  = fields.restThanks  || REST_INFO.thanks;
+  toast('✅ Restaurant info saved! Bills will now show your details.');
+  document.getElementById('restInfoStatus').innerHTML =
+    `<div class="alert-success">✅ Bills will print: <strong>${REST_INFO.name}</strong> · ${REST_INFO.phone}</div>`;
 }
 
 async function saveAdminEmail() {
