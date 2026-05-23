@@ -2660,7 +2660,7 @@ function renderCustomerStats(customers) {
 
 function renderCustomersTable(customers) {
   const tbody = document.getElementById('customersTable'); if (!tbody) return;
-  if (!customers.length) { tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:gray;padding:20px;">No customers yet — they'll auto-save from Takeaway & Delivery orders!</td></tr>'; return; }
+  if (!customers.length) { tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:gray;padding:20px;">No customers yet — theyll auto-save from Takeaway & Delivery orders!</td></tr>'; return; }
   tbody.innerHTML = customers.map(c => `
     <tr>
       <td><strong>${escHtml(c.name||'-')}</strong>${c.notes?`<div style="font-size:10px;color:var(--gold);">⭐ ${escHtml(c.notes)}</div>`:''}</td>
