@@ -1179,7 +1179,8 @@ function updatePinDots() {
   }
 }
 async function doLogin() {
-  const username = document.getElementById('loginUsername').value.trim();
+  const username = document.getElementById('loginUsername').value.trim()
+    .replace(/\b\w/g, c => c.toUpperCase()); // capitalize first letter of each word
   if (!username) return document.getElementById('loginError').textContent = '⚠️ Enter your username';
   if (pinValue.length !== 4) return document.getElementById('loginError').textContent = '⚠️ Enter 4-digit PIN';
   document.getElementById('loginError').textContent = '⏳ Logging in...';
@@ -2917,10 +2918,10 @@ window.onload = function() {
   // ── ALWAYS set up PIN pad event listeners (using addEventListener for reliable touch/click) ──
   const pinPad = document.getElementById('pinPad');
   if (pinPad) {
-    pinPad.addEventListener('pointerdown', function(e) {
+    // Use click with touch-action:manipulation (CSS) — works on all devices, no double-fire
+    pinPad.addEventListener('click', function(e) {
       const btn = e.target.closest('.pin-key');
       if (!btn) return;
-      e.preventDefault();
       const key = btn.dataset.key;
       if (key === 'login') doLogin();
       else pressKey(key);
@@ -2953,5 +2954,5 @@ window.onload = function() {
 };
 </script>
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js/v833ccba57c9e4d2798f2e76cebdd09a11778172276447" integrity="sha512-57MDmcccJXYtNnH+ZiBwzC4jb2rvgVCEokYN+L/nLlmO8rfYT/gIpW2A569iJ/3b+0UEasghjuZH/ma3wIs/EQ==" data-cf-beacon='{"version":"2024.11.0","token":"1954b47c125f43f8b4338b3c4f804e4f","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a000f406cd4e2e7d',t:'MTc3OTUwNjcyNA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a001026b5cfd1340',t:'MTc3OTUwNzMxNA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
