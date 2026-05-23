@@ -30,11 +30,11 @@ body.logged-in{display:block;}
 .pin-dot{width:38px;height:38px;border-radius:50%;border:2px solid #ddd;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:bold;background:#fff;transition:all 0.2s;}
 .pin-dot.filled{border-color:var(--primary);background:var(--primary);color:#fff;}
 .pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:260px;margin:0 auto 12px;}
-.pin-key{width:100%;aspect-ratio:1;border-radius:50%;border:2px solid #ddd;background:#fff;font-size:20px;font-weight:600;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;justify-content:center;}
+.pin-key{width:100%;aspect-ratio:1;border-radius:50%;border:2px solid #ddd;background:#fff;font-size:22px;font-weight:600;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;touch-action:manipulation;min-width:54px;min-height:54px;position:relative;}
 .pin-key:hover{background:#f0f0f0;border-color:var(--primary);}
-.pin-key:active{transform:scale(0.92);}
+.pin-key:active{transform:scale(0.92);background:#e8e8e8;}
 .pin-key.clear{font-size:14px;color:var(--gray);}
-.pin-key.login-btn{background:var(--primary);color:#fff;border-color:var(--primary);}
+.pin-key.login-btn{background:var(--primary);color:#fff;border-color:var(--primary);font-size:24px;}
 .pin-key.login-btn:hover{background:var(--primary-dark);}
 .login-error{color:var(--primary);font-size:13px;margin-top:8px;min-height:20px;}
 .login-credit{color:rgba(255,255,255,0.5);font-size:11px;margin-top:14px;}
@@ -248,13 +248,13 @@ tr:hover{background:#fafafa;}
       <div class="pin-dot" id="dot3"></div>
       <div class="pin-dot" id="dot4"></div>
     </div>
-    <div class="pin-pad">
-      <div class="pin-key" onclick="pressKey('1')">1</div><div class="pin-key" onclick="pressKey('2')">2</div><div class="pin-key" onclick="pressKey('3')">3</div>
-      <div class="pin-key" onclick="pressKey('4')">4</div><div class="pin-key" onclick="pressKey('5')">5</div><div class="pin-key" onclick="pressKey('6')">6</div>
-      <div class="pin-key" onclick="pressKey('7')">7</div><div class="pin-key" onclick="pressKey('8')">8</div><div class="pin-key" onclick="pressKey('9')">9</div>
-      <div class="pin-key clear" onclick="pressKey('clear')">⌫</div>
-      <div class="pin-key" onclick="pressKey('0')">0</div>
-      <div class="pin-key login-btn" onclick="doLogin()">→</div>
+    <div class="pin-pad" id="pinPad">
+      <div class="pin-key" data-key="1">1</div><div class="pin-key" data-key="2">2</div><div class="pin-key" data-key="3">3</div>
+      <div class="pin-key" data-key="4">4</div><div class="pin-key" data-key="5">5</div><div class="pin-key" data-key="6">6</div>
+      <div class="pin-key" data-key="7">7</div><div class="pin-key" data-key="8">8</div><div class="pin-key" data-key="9">9</div>
+      <div class="pin-key clear" data-key="clear">⌫</div>
+      <div class="pin-key" data-key="0">0</div>
+      <div class="pin-key login-btn" data-key="login">→</div>
     </div>
     <div class="login-error" id="loginError"></div>
   </div>
@@ -2913,6 +2913,34 @@ function escAttr(s) { return (s||'').replace(/"/g,'&quot;').replace(/'/g,'&#039;
 window.onload = function() {
   // Safety: always show login screen first, never white screen
   document.getElementById('loginScreen').classList.remove('hidden');
+
+  // ── ALWAYS set up PIN pad event listeners (using addEventListener for reliable touch/click) ──
+  const pinPad = document.getElementById('pinPad');
+  if (pinPad) {
+    pinPad.addEventListener('pointerdown', function(e) {
+      const btn = e.target.closest('.pin-key');
+      if (!btn) return;
+      e.preventDefault();
+      const key = btn.dataset.key;
+      if (key === 'login') doLogin();
+      else pressKey(key);
+    });
+  }
+
+  // ── ALWAYS set up keyboard support for login ──
+  document.getElementById('loginUsername').addEventListener('keydown', e => {
+    if (e.key === 'Enter') doLogin();
+  });
+  document.addEventListener('keydown', e => {
+    const ls = document.getElementById('loginScreen');
+    if (ls && !ls.classList.contains('hidden')) {
+      if (e.key >= '0' && e.key <= '9') { pressKey(e.key); e.preventDefault(); }
+      else if (e.key === 'Backspace') { pressKey('clear'); e.preventDefault(); }
+      else if (e.key === 'Enter') { doLogin(); e.preventDefault(); }
+    }
+  });
+
+  // ── Try auto-login from saved session ──
   const saved = localStorage.getItem('induswok_user');
   if (saved) {
     try {
@@ -2920,18 +2948,10 @@ window.onload = function() {
       if (currentUser && currentUser.username) { initApp(); return; }
     } catch(e) { localStorage.removeItem('induswok_user'); }
   }
+  // Ensure login screen stays visible if no saved user
   document.getElementById('loginScreen').classList.remove('hidden');
-  // Keyboard support for login
-  document.getElementById('loginUsername').addEventListener('keydown', e => { if (e.key==='Enter') document.getElementById('dot1').focus(); });
-  document.addEventListener('keydown', e => {
-    const ls = document.getElementById('loginScreen');
-    if (ls && !ls.classList.contains('hidden')) {
-      if (e.key >= '0' && e.key <= '9') pressKey(e.key);
-      else if (e.key === 'Backspace') pressKey('clear');
-      else if (e.key === 'Enter') doLogin();
-    }
-  });
 };
 </script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v833ccba57c9e4d2798f2e76cebdd09a11778172276447" integrity="sha512-57MDmcccJXYtNnH+ZiBwzC4jb2rvgVCEokYN+L/nLlmO8rfYT/gIpW2A569iJ/3b+0UEasghjuZH/ma3wIs/EQ==" data-cf-beacon='{"version":"2024.11.0","token":"1954b47c125f43f8b4338b3c4f804e4f","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 </body>
 </html>
