@@ -283,6 +283,124 @@ tr:hover{background:#fafafa;}
 .kot-detail-item:last-child{border-bottom:none;}
 .kot-detail-item .name{font-weight:600;}
 .kot-detail-modifiers{font-size:10px;color:#856404;padding-left:10px;font-style:italic;}
+
+/* ===== RESPONSIVE: TABLET (768px - 1024px) ===== */
+@media (min-width:768px) and (max-width:1024px){
+  .billing-layout{grid-template-columns:1fr 320px;}
+  .menu-grid{grid-template-columns:repeat(auto-fill,minmax(100px,1fr));}
+  .cart-sidebar{position:relative;top:0;max-height:none;}
+  #mainContent{padding:10px;}
+  .stat-grid{grid-template-columns:repeat(4,1fr);}
+  .tables-grid{grid-template-columns:repeat(auto-fill,minmax(110px,1fr));}
+  .kds-grid{grid-template-columns:repeat(auto-fill,minmax(240px,1fr));}
+  .tab-btn{padding:8px 10px;font-size:11px;}
+  .menu-item-card .fh-btn{font-size:9px;}
+}
+
+/* ===== RESPONSIVE: MOBILE (< 768px) ===== */
+@media (max-width:767px){
+  #topBar{padding:6px 8px;min-height:42px;}
+  #topBar .brand{font-size:14px;}
+  #topBar .brand svg{width:20px;height:20px;}
+  #topBar .user-info{gap:4px;font-size:11px;}
+  #topBar .ai-badge{display:none;}
+  #topBar .role-badge{font-size:10px;padding:1px 6px;}
+  #topBar button{padding:4px 6px;font-size:10px;}
+  #dayStatusBar{padding:4px 8px;font-size:10px;gap:4px;}
+  #dayStatusBar .btn{font-size:10px;padding:3px 6px;}
+
+  #tabBar{top:42px;}
+  .tab-btn{padding:7px 9px;font-size:11px;}
+
+  #mainContent{padding:8px;}
+  .card{padding:10px;margin-bottom:10px;}
+  .card h3{font-size:13px;}
+
+  .billing-layout{grid-template-columns:1fr;}
+  .cart-sidebar{position:fixed;bottom:0;left:0;right:0;z-index:200;max-height:65vh;border-radius:16px 16px 0 0;box-shadow:0 -4px 20px rgba(0,0,0,0.15);transition:transform 0.3s;}
+  .cart-sidebar.collapsed{transform:translateY(calc(100% - 48px));}
+  .cart-sidebar .cart-items{min-height:60px;max-height:200px;}
+  .cart-header{cursor:pointer;}
+
+  .menu-grid{grid-template-columns:repeat(auto-fill,minmax(95px,1fr));gap:5px;}
+  .menu-item-card{padding:6px;}
+  .menu-item-card .name{font-size:10px;}
+  .menu-item-card .fh-btn{font-size:9px;padding:3px 1px;}
+
+  .stat-grid{grid-template-columns:repeat(2,1fr);gap:8px;}
+  .stat-card{padding:10px;}
+  .stat-card .value{font-size:18px;}
+  .stat-card .icon{font-size:18px;}
+  .stat-card .label{font-size:10px;}
+
+  .grid-2{grid-template-columns:1fr;}
+  .form-row,.form-row-3{grid-template-columns:1fr;}
+
+  .tables-grid{grid-template-columns:repeat(auto-fill,minmax(95px,1fr));gap:8px;}
+  .table-card{padding:10px;}
+  .table-card .table-no{font-size:18px;}
+  .table-card .table-status{font-size:10px;}
+
+  .kds-grid{grid-template-columns:1fr;gap:10px;}
+  .kot-card{padding:10px;}
+
+  .stock-grid{grid-template-columns:1fr;}
+  .filter-bar{gap:6px;}
+  .filter-bar select,.filter-bar input{font-size:11px;min-width:0;flex:1;}
+
+  .report-action-card{padding:14px;}
+
+  table{font-size:11px;}
+  th{padding:6px 4px;}
+  td{padding:5px 4px;}
+
+  .modal{padding:16px;max-width:100%;border-radius:12px;}
+  .modal h3{font-size:15px;}
+
+  .btn{padding:8px 12px;font-size:12px;}
+  .btn-sm{padding:4px 8px;font-size:10px;}
+  .cart-actions{gap:4px;}
+  .cart-actions .btn{font-size:11px;padding:8px 4px;}
+
+  #syncIndicator{bottom:10px;left:10px;font-size:11px;padding:6px 10px;}
+  .footer-credit{font-size:10px;padding:10px 8px 6px;}
+
+  .login-box{padding:28px 20px;max-width:340px;}
+  .login-box h1{font-size:20px;}
+  .pin-key{min-width:48px;min-height:48px;font-size:20px;}
+
+  .modifierModal .modal{max-width:100%;}
+  #modifierOptions > div > div[style*="grid"]{grid-template-columns:1fr;}
+
+  .order-sequence-card{padding:10px;}
+  .order-sequence-id{font-size:13px;}
+  .order-sequence-footer{flex-direction:column;align-items:stretch;gap:8px;}
+  .order-sequence-footer > div:last-child{justify-content:center;}
+}
+
+/* ===== RESPONSIVE: SMALL MOBILE (< 380px) ===== */
+@media (max-width:379px){
+  .menu-grid{grid-template-columns:repeat(2,1fr);}
+  .stat-grid{grid-template-columns:1fr;}
+  .tables-grid{grid-template-columns:repeat(2,1fr);}
+  .login-box h1{font-size:18px;}
+  .pin-key{min-width:44px;min-height:44px;font-size:18px;}
+  #topBar .brand{font-size:12px;}
+}
+
+/* ===== RESPONSIVE: LARGE DESKTOP (> 1400px) ===== */
+@media (min-width:1400px){
+  #mainContent{max-width:1600px;padding:16px 24px;}
+  .billing-layout{grid-template-columns:1fr 400px;}
+  .menu-grid{grid-template-columns:repeat(auto-fill,minmax(130px,1fr));}
+  .stat-grid{grid-template-columns:repeat(auto-fit,minmax(170px,1fr));}
+  .kds-grid{grid-template-columns:repeat(auto-fill,minmax(300px,1fr));}
+  .tables-grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));}
+}
+
+/* Cart toggle for mobile */
+#cartToggle{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--primary);color:#fff;padding:10px;text-align:center;font-weight:700;cursor:pointer;z-index:199;box-shadow:0 -2px 10px rgba(0,0,0,0.2);}
+@media (max-width:767px){#cartToggle{display:block;}}
 </style>
 </head>
 <body>
@@ -761,8 +879,8 @@ tr:hover{background:#fafafa;}
         </div>
       </div>
       <!-- Cart -->
-      <div class="cart-sidebar">
-        <div class="flex justify-between items-center mb-6">
+      <div class="cart-sidebar" id="cartSidebar">
+        <div class="flex justify-between items-center mb-6" id="cartHeaderToggle">
           <h3 style="margin:0;">🛒 Cart</h3>
           <span id="cartCount" style="font-size:11px;color:var(--gray);">0 items</span>
         </div>
@@ -1237,6 +1355,7 @@ function getStation(category) {
 
 // ── Per-table cart memory ──
 let tableCarts = {};
+let recentlyFreedTables = {}; // {tableNo: timestamp} - prevent sync from restoring freed tables
 let selectedTable = null;
 let cart = [];
 let discountValue = 0;
@@ -1608,9 +1727,16 @@ async function checkForRemoteChanges() {
       let remoteChanged = false;
 
       console.log('CHECK_SYNC response', res);
-      // Merge remote table carts from backend (including currently selected table)
+      // Merge remote table carts from backend (but skip recently freed tables)
+      const nowMs = Date.now();
+      // Clean expired freed-table guards (older than 30 seconds)
+      Object.keys(recentlyFreedTables).forEach(function(ft) {
+        if (nowMs - recentlyFreedTables[ft] > 30000) delete recentlyFreedTables[ft];
+      });
       if (res.tableCarts && typeof res.tableCarts === 'object') {
         Object.keys(res.tableCarts).forEach(function(t) {
+          // Skip if this table was recently freed locally (prevents race condition)
+          if (recentlyFreedTables[t]) return;
           var remoteCart = res.tableCarts[t];
           if (remoteCart && remoteCart.cart && remoteCart.cart.length > 0) {
             if (JSON.stringify(tableCarts[t] || {}) !== JSON.stringify(remoteCart)) {
@@ -1732,24 +1858,14 @@ function updateSyncIndicator(type, message) {
 // Broadcast cart changes to other devices
 function broadcastCartChange() {
   const currentHash = getCartHash();
-  if (currentHash !== lastKnownCartHash) {
-    lastKnownCartHash = currentHash;
-    lastSyncTime = Date.now();
+  lastKnownCartHash = currentHash;
+  lastSyncTime = Date.now();
+  persistTableCarts();
+  // Push carts to backend IMMEDIATELY (no debounce) to prevent race conditions
+  if (currentUser) {
     try {
-      localStorage.setItem('induswok_cart_change_' + currentUser.username, Date.now().toString());
-    } catch (e) {}
-    // Push carts to backend for cross-device sync (debounced 1s)
-    if (!window.__cartPushTimer) {
-      window.__cartPushTimer = setTimeout(async function() {
-        window.__cartPushTimer = null;
-        try {
-          console.log('Pushing carts to backend', Object.keys(tableCarts));
-          await api('SAVE_CARTS', {
-            carts: tableCarts
-          });
-        } catch(e) { console.error('Cart push failed', e); }
-      }, 1000);
-    }
+      api('SAVE_CARTS', { carts: tableCarts }).catch(function(e){ console.error('Cart push failed', e); });
+    } catch(e) { console.error('Cart push failed', e); }
   }
 }
 
@@ -1855,6 +1971,17 @@ async function initApp() {
 
   // Start real-time sync
   startSyncPolling();
+
+  // Mobile cart toggle
+  var cartHeader = document.getElementById('cartHeaderToggle');
+  if (cartHeader) {
+    cartHeader.addEventListener('click', function() {
+      var sidebar = document.getElementById('cartSidebar');
+      if (sidebar && window.innerWidth <= 767) {
+        sidebar.classList.toggle('collapsed');
+      }
+    });
+  }
 
   // Run independent loaders in parallel
   await Promise.all([loadDashboard(), loadMenu(), loadTables(), loadKDS(true), loadOrders(), loadExpenses(), loadInventory(), loadVendors(), loadTargets(), loadDishes(), loadMoneyReceived(), loadRecon(), loadUsers(), loadPredictions(), loadAudit(), loadStaff(), loadAttendance(), loadSalary(), loadTasks(), loadContentIdeas(), loadSmartStock(), loadCustomers(), loadRecipes(), loadDeductionLog(), loadReportsLog(), loadSettings()]).catch(() => {});
@@ -3796,7 +3923,7 @@ async function confirmSettle() {
     waiter: ((_currentUser4 = currentUser) === null || _currentUser4 === void 0 ? void 0 : _currentUser4.name) || ((_currentUser5 = currentUser) === null || _currentUser5 === void 0 ? void 0 : _currentUser5.username) || ''
   };
   const r = await api('PLACE_ORDER', orderData);
-  if (!r.success) return toast('❌ ' + r.message, 'error');
+  if (!r.success) { isSettling = false; return toast('❌ ' + r.message, 'error'); }
 
   // Save to local bills archive
   const billSnapshot = {
@@ -3824,14 +3951,19 @@ async function confirmSettle() {
     if (archive.length > 100) archive = archive.slice(0, 100);
     localStorage.setItem('induswok_bills_archive', JSON.stringify(archive));
   } catch (e) {}
-  if (selectedTable) await api('UPDATE_TABLE', {
-    tableNo: selectedTable,
-    status: 'Available'
-  });
+  // Free the table in backend
+  if (selectedTable) {
+    await api('UPDATE_TABLE', { tableNo: selectedTable, status: 'Available', currentOrderID: '', customerName: '' });
+    // Update local cache immediately
+    tablesCache = tablesCache.map(function(t) { return t.tableNo === selectedTable ? Object.assign({}, t, { status: 'Available', currentOrderID: '', customerName: '' }) : t; });
+  }
+  // Delete the table cart and push IMMEDIATELY to prevent sync restoring it
   if (selectedTable && tableCarts[selectedTable]) {
     delete tableCarts[selectedTable];
   }
+  recentlyFreedTables[selectedTable] = Date.now(); // Guard against sync restoring freed table
   persistTableCarts();
+  broadcastCartChange();
   cart = [];
   discountValue = 0;
   discountType = 'flat';
@@ -3859,9 +3991,9 @@ async function confirmSettle() {
   await loadTables();
   await loadDashboard();
   renderDaySummarySection();
+  renderTables();
   isSettling = false;
   toast('✅ Bill settled! Table ' + justSettled + ' is now free. Order: ' + r.orderId + ' | +₹' + Math.max(0,total).toFixed(0) + ' added to sales');
-  broadcastCartChange();
 }
 
 // ================================================================
@@ -4076,7 +4208,6 @@ function selectTable(tableNo) {
   updateTableIndicator();
   renderCart();
   persistTableCarts();
-  toast('🍽️ Table ' + tableNo + ' — ' + (cart.length > 0 ? cart.length + ' items in cart' : 'Empty cart'));
   broadcastCartChange();
 }
 function updateTableIndicator() {
@@ -4129,14 +4260,16 @@ async function freeTable(t) {
     delete tableCarts[t];
     persistTableCarts();
   }
-  await api('UPDATE_TABLE', {
-    tableNo: t,
-    status: 'Available'
-  });
-  closeTableModal();
-  loadTables();
-  toast('✅ Table ' + t + ' freed');
+  recentlyFreedTables[t] = Date.now(); // Guard against sync restoring freed table
+  await api('UPDATE_TABLE', { tableNo: t, status: 'Available', currentOrderID: '', customerName: '' });
+  // Update local cache immediately
+  tablesCache = tablesCache.map(function(tbl) { return tbl.tableNo === t ? Object.assign({}, tbl, { status: 'Available', currentOrderID: '', customerName: '' }) : tbl; });
+  // Push empty cart IMMEDIATELY to prevent sync restoring old cart
   broadcastCartChange();
+  closeTableModal();
+  await loadTables();
+  renderTables();
+  toast('✅ Table ' + t + ' freed');
 }
 async function reserveTable(t) {
   var _document$getElementB32;
