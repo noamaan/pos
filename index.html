@@ -1729,9 +1729,9 @@ async function checkForRemoteChanges() {
       console.log('CHECK_SYNC response', res);
       // Merge remote table carts from backend (but skip recently freed tables)
       const nowMs = Date.now();
-      // Clean expired freed-table guards (older than 30 seconds)
+      // Clean expired freed-table guards
       Object.keys(recentlyFreedTables).forEach(function(ft) {
-        if (nowMs - recentlyFreedTables[ft] > 30000) delete recentlyFreedTables[ft];
+        if (nowMs > recentlyFreedTables[ft]) delete recentlyFreedTables[ft];
       });
       if (res.tableCarts && typeof res.tableCarts === 'object') {
         Object.keys(res.tableCarts).forEach(function(t) {
@@ -3922,6 +3922,20 @@ async function confirmSettle() {
     status: 'Settled',
     waiter: ((_currentUser4 = currentUser) === null || _currentUser4 === void 0 ? void 0 : _currentUser4.name) || ((_currentUser5 = currentUser) === null || _currentUser5 === void 0 ? void 0 : _currentUser5.username) || ''
   };
+  // Free the table FIRST (before placing order) so backend doesn't show Occupied
+  if (selectedTable) {
+    await api('UPDATE_TABLE', { tableNo: selectedTable, status: 'Available', currentOrderID: '', customerName: '' });
+    tablesCache = tablesCache.map(function(t) { return t.tableNo === selectedTable ? Object.assign({}, t, { status: 'Available', currentOrderID: '', customerName: '' }) : t; });
+  }
+  // Delete local cart and push to backend IMMEDIATELY
+  const settledTable = selectedTable;
+  if (tableCarts[selectedTable]) {
+    delete tableCarts[selectedTable];
+  }
+  recentlyFreedTables[selectedTable] = Date.now() + 60000; // 60s guard
+  persistTableCarts();
+  broadcastCartChange();
+
   const r = await api('PLACE_ORDER', orderData);
   if (!r.success) { isSettling = false; return toast('❌ ' + r.message, 'error'); }
 
@@ -3951,19 +3965,7 @@ async function confirmSettle() {
     if (archive.length > 100) archive = archive.slice(0, 100);
     localStorage.setItem('induswok_bills_archive', JSON.stringify(archive));
   } catch (e) {}
-  // Free the table in backend
-  if (selectedTable) {
-    await api('UPDATE_TABLE', { tableNo: selectedTable, status: 'Available', currentOrderID: '', customerName: '' });
-    // Update local cache immediately
-    tablesCache = tablesCache.map(function(t) { return t.tableNo === selectedTable ? Object.assign({}, t, { status: 'Available', currentOrderID: '', customerName: '' }) : t; });
-  }
-  // Delete the table cart and push IMMEDIATELY to prevent sync restoring it
-  if (selectedTable && tableCarts[selectedTable]) {
-    delete tableCarts[selectedTable];
-  }
-  recentlyFreedTables[selectedTable] = Date.now(); // Guard against sync restoring freed table
-  persistTableCarts();
-  broadcastCartChange();
+  // Table already freed above
   cart = [];
   discountValue = 0;
   discountType = 'flat';
@@ -4148,8 +4150,9 @@ function renderTables() {
   let f = tablesCache;
   if (filter !== 'All') f = f.filter(t => t.area === filter);
   grid.innerHTML = f.map(t => {
-    // Check if table has items in cart
-    const hasItems = tableCarts[t.tableNo] && tableCarts[t.tableNo].cart && tableCarts[t.tableNo].cart.length > 0;
+    // Check if table has items in cart — BUT only if backend says it's NOT Available
+    const backendAvailable = t.status === 'Available';
+    const hasItems = !backendAvailable && tableCarts[t.tableNo] && tableCarts[t.tableNo].cart && tableCarts[t.tableNo].cart.length > 0;
     const itemCount = hasItems ? tableCarts[t.tableNo].cart.reduce((a, i) => a + i.qty, 0) : 0;
     const tableTotal = hasItems ? tableCarts[t.tableNo].cart.reduce((a, i) => a + (i.price || (i.size === "HALF" ? i.halfPrice : i.fullPrice)) * i.qty, 0) : 0;
 
@@ -4168,6 +4171,12 @@ function openTableModal(tableNo, status, customer, orderId) {
   document.getElementById('tableModalTitle').textContent = 'Table ' + tableNo;
   const body = document.getElementById('tableModalBody');
   const tc = tableCarts[tableNo];
+  // If backend says Available, show the Available modal regardless of leftover cart
+  if (status === 'Available') {
+    body.innerHTML = "<p style=\"margin-bottom:10px;color:var(--green);\">\uD83D\uDFE2 Available</p>\n      <div class=\"form-group\"><label>Customer Name</label><input type=\"text\" id=\"modalCustomer\" placeholder=\"Walk-in (optional)\"></div>\n      <div class=\"flex gap-8 mt-8\">\n        <button class=\"btn btn-green\" onclick=\"startOrder('" + tableNo + "')\">\uD83C\uDF7D\uFE0F Start Order</button>\n        <button class=\"btn btn-gold\" onclick=\"reserveTable('" + tableNo + "')\">\uD83D\uDFE1 Reserve</button>\n      </div>";
+    document.getElementById('tableModal').classList.add('active');
+    return;
+  }
   const hasItems = tc && tc.cart && tc.cart.length > 0;
   const itemCount = hasItems ? tc.cart.reduce((a, i) => a + i.qty, 0) : 0;
   const tableTotal = hasItems ? tc.cart.reduce((a, i) => a + (i.price || (i.size === "HALF" ? i.halfPrice : i.fullPrice)) * i.qty, 0) : 0;
@@ -4255,21 +4264,22 @@ function startOrder(tableNo) {
   }
 }
 async function freeTable(t) {
-  // Also clear cart if any
+  // Mark as freed immediately (60s guard to prevent sync restoring)
+  recentlyFreedTables[t] = Date.now() + 60000;
+  // Clear local cart
   if (tableCarts[t]) {
     delete tableCarts[t];
-    persistTableCarts();
   }
-  recentlyFreedTables[t] = Date.now(); // Guard against sync restoring freed table
+  persistTableCarts();
+  // Update backend table status
   await api('UPDATE_TABLE', { tableNo: t, status: 'Available', currentOrderID: '', customerName: '' });
   // Update local cache immediately
   tablesCache = tablesCache.map(function(tbl) { return tbl.tableNo === t ? Object.assign({}, tbl, { status: 'Available', currentOrderID: '', customerName: '' }) : tbl; });
-  // Push empty cart IMMEDIATELY to prevent sync restoring old cart
+  // Push empty carts to backend IMMEDIATELY
   broadcastCartChange();
   closeTableModal();
-  await loadTables();
   renderTables();
-  toast('✅ Table ' + t + ' freed');
+  toast('\u2705 Table ' + t + ' freed');
 }
 async function reserveTable(t) {
   var _document$getElementB32;
@@ -4885,5 +4895,5 @@ window.onload = function () {
 </style>
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js/v833ccba57c9e4d2798f2e76cebdd09a11778172276447" integrity="sha512-57MDmcccJXYtNnH+ZiBwzC4jb2rvgVCEokYN+L/nLlmO8rfYT/gIpW2A569iJ/3b+0UEasghjuZH/ma3wIs/EQ==" data-cf-beacon='{"version":"2024.11.0","token":"1954b47c125f43f8b4338b3c4f804e4f","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a06b4826187c4704',t:'MTc4MDYyMTY2MQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a080e418b9a0c6ee',t:'MTc4MDg0ODI0OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a0a8d3000b2986eb',t:'MTc4MTI2Njk3OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a0c6a18a6a004475',t:'MTc4MTU3OTUyNg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script defer src="https://static.cloudflareinsights.com/beacon.min.js/v833ccba57c9e4d2798f2e76cebdd09a11778172276447" integrity="sha512-57MDmcccJXYtNnH+ZiBwzC4jb2rvgVCEokYN+L/nLlmO8rfYT/gIpW2A569iJ/3b+0UEasghjuZH/ma3wIs/EQ==" data-cf-beacon='{"version":"2024.11.0","token":"1954b47c125f43f8b4338b3c4f804e4f","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
-</body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a0c9e94aac793ee3',t:'MTc4MTYxMzkyMg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
