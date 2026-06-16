@@ -217,7 +217,7 @@ let online = true;
 // API HELPER (GET-based, bypasses CORS completely)
 // ============================================================
 async function api(action, params={}) {
-  if (SCRIPT_URL === 'https://script.google.com/macros/s/AKfycbwEpsWSmDbvm5zhdg208n4kDrbUV_nXf5Np0mSqhN8cGxOkwbn0FmJHtwfB9XBHQLJ4/exec') {
+  if (SCRIPT_URL === 'PASTE_YOUR_WEB_APP_URL_HERE') {
     return { success:false, message:'Set SCRIPT_URL in index.html first!' };
   }
   const payload = JSON.stringify({
@@ -1018,5 +1018,5 @@ function fmt(n) { return Number(n||0).toLocaleString('en-IN'); }
 function esc(s) { return String(s||'').replace(/'/g, "\\'"); }
 function todayStr() { return new Date().toISOString().slice(0,10); }
 </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a0c67e152c4894dd',t:'MTc4MTU3ODA3NA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a0c694f5f82b9be3',t:'MTc4MTU3OTAxMQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
